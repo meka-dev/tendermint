@@ -54,5 +54,6 @@ sections.
 - [RFC-014: Semantic Versioning](./rfc-014-semantic-versioning.md)
 - [RFC-015: ABCI++ Tx Mutation](./rfc-015-abci++-tx-mutation.md)
 - [RFC-019: Configuration File Versioning](./rfc-019-config-version.md)
+- [RFC-020: Block Structure Consolidation](./rfc-020-block-structure-consolidation.md)
 
 <!-- - [RFC-NNN: Title](./rfc-NNN-title.md) -->
