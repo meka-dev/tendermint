@@ -272,7 +272,9 @@ func (wtl *WrappedTxList) Remove(wtx *WrappedTx) {
 	// non-existing element.
 	for i < len(wtl.txs) {
 		if wtl.txs[i] == wtx {
-			wtl.txs = append(wtl.txs[:i], wtl.txs[i+1:]...)
+			tmp := append(wtl.txs[:i], wtl.txs[i+1:]...)
+			wtl.txs[len(wtl.txs)-1] = nil
+			wtl.txs = tmp
 			return
 		}
 

@@ -331,6 +331,9 @@ func (txmp *TxMempool) Flush() {
 
 	atomic.SwapInt64(&txmp.sizeBytes, 0)
 	txmp.cache.Reset()
+	txmp.gossipIndex = clist.New()
+	txmp.recheckCursor = nil
+	txmp.recheckEnd = nil
 }
 
 // ReapMaxBytesMaxGas returns a list of transactions within the provided size
