@@ -416,12 +416,24 @@ func SumTruncated(bz []byte) []byte {
 
 ## ConsensusParams
 
-| Name      | Type                                | Description                                                                  | Field Number |
-|-----------|-------------------------------------|------------------------------------------------------------------------------|--------------|
-| block     | [BlockParams](#blockparams)         | Parameters limiting the size of a block and time between consecutive blocks. | 1            |
-| evidence  | [EvidenceParams](#evidenceparams)   | Parameters limiting the validity of evidence of byzantine behaviour.         | 2            |
-| validator | [ValidatorParams](#validatorparams) | Parameters limiting the types of public keys validators can use.             | 3            |
-| version   | [BlockParams](#blockparams)         | The ABCI application version.                                                | 4            |
+| Name      | Type                                | Description                                                                               | Field Number |
+|-----------|-------------------------------------|-------------------------------------------------------------------------------------------|--------------|
+| block     | [BlockParams](#blockparams)         | Parameters limiting the size of a block and time between consecutive blocks.              | 1            |
+| evidence  | [EvidenceParams](#evidenceparams)   | Parameters limiting the validity of evidence of byzantine behaviour.                      | 2            |
+| validator | [ValidatorParams](#validatorparams) | Parameters limiting the types of public keys validators can use.                          | 3            |
+| version   | [BlockParams](#blockparams)         | The ABCI application version.                                                             | 4            |
+| synchrony | [SynchronyParams](#synchronyparams) | SynchronyParams influence the validity of block timestamps.                               | 5            |
+| timeout   | [TimeoutParams](#timeoutparams)     | TimeoutParams configure the timings of the steps of the Tendermint consensus algorithm.   | 6            |
+| ABCI      | [ABCIParams](#abciparams)           | ABCIParams configure ABCI functionality specific to the Application Blockchain Interface. | 7            |
+
+
+### HashedParams
+Hashed Params is a subset of Consensus Params, it is amino encoded and hashed into the Header.ConsensusHash.
+
+| Name            | Type  | Description                                                                                                                                                                                                 | Field Number |
+|-----------------|-------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------|
+| block_max_bytes | int64 | Max size of a block, in bytes.                                                                                                                                                                              | 1            |
+| block_max_gas   | int64 | Max sum of `GasWanted` in a proposed block. NOTE: blocks that violate this may be committed if there are Byzantine proposers. It's the application's responsibility to handle this when processing a block! | 2            |
 
 ### BlockParams
 
@@ -429,7 +441,6 @@ func SumTruncated(bz []byte) []byte {
 |--------------|-------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------|
 | max_bytes    | int64 | Max size of a block, in bytes.                                                                                                                                                                              | 1            |
 | max_gas      | int64 | Max sum of `GasWanted` in a proposed block. NOTE: blocks that violate this may be committed if there are Byzantine proposers. It's the application's responsibility to handle this when processing a block! | 2            |
-| recheck_tx   | bool  | Indicated whether to run `CheckTx` on all remaining transactions *after* every execution of a block | 3            |
 
 ### EvidenceParams
 
@@ -437,7 +448,7 @@ func SumTruncated(bz []byte) []byte {
 |--------------------|------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------|
 | max_age_num_blocks | int64                                                                                                                              | Max age of evidence, in blocks.                                                                                                                                                                                                                                                | 1            |
 | max_age_duration   | [google.protobuf.Duration](https://developers.google.com/protocol-buffers/docs/reference/google.protobuf#google.protobuf.Duration) | Max age of evidence, in time. It should correspond with an app's "unbonding period" or other similar mechanism for handling [Nothing-At-Stake attacks](https://github.com/ethereum/wiki/wiki/Proof-of-Stake-FAQ#what-is-the-nothing-at-stake-problem-and-how-can-it-be-fixed). | 2            |
-| max_bytes          | int64                                                                                                                              | maximum size in bytes of total evidence allowed to be entered into a block                                                                                                                                                                                                     | 3            |
+| max_bytes          | int64                                                                                                                              | maximum size in bytes of total evidence allowed to be entered into a block.                                                                                                                                                                                                    | 3            |
 
 ### ValidatorParams
 
@@ -455,8 +466,8 @@ func SumTruncated(bz []byte) []byte {
 
 | Name          | Type   | Description                   | Field Number |
 |---------------|--------|-------------------------------|--------------|
-| message_delay | [google.protobuf.Duration](https://developers.google.com/protocol-buffers/docs/reference/google.protobuf#google.protobuf.Duration) | Bound for how long a proposal message may take to reach all validators on a newtork and still be considered valid. | 1            |
-| precision     | [google.protobuf.Duration](https://developers.google.com/protocol-buffers/docs/reference/google.protobuf#google.protobuf.Duration) | Bound for how skewed a proposer's clock may be from any validator on the network while still producing valid proposals. | 2            |
+| precision     | [google.protobuf.Duration](https://developers.google.com/protocol-buffers/docs/reference/google.protobuf#google.protobuf.Duration) | Bound for how skewed a proposer's clock may be from any validator on the network while still producing valid proposals. | 1            |
+| message_delay | [google.protobuf.Duration](https://developers.google.com/protocol-buffers/docs/reference/google.protobuf#google.protobuf.Duration) | Bound for how long a proposal message may take to reach all validators on a newtork and still be considered valid. | 2            |
 
 ### TimeoutParams
 
@@ -468,6 +479,13 @@ func SumTruncated(bz []byte) []byte {
 | vote_delta | [google.protobuf.Duration](https://developers.google.com/protocol-buffers/docs/reference/google.protobuf#google.protobuf.Duration)| Parameter that, along with vote, configures the timeout for the prevote and precommit step of the consensus algorithm. | 4 |
 | commit | [google.protobuf.Duration](https://developers.google.com/protocol-buffers/docs/reference/google.protobuf#google.protobuf.Duration) | Parameter that configures how long Tendermint will wait after receiving a quorum of precommits before beginning consensus for the next height.| 5 |
 | bypass_commit_timeout | bool | Parameter that, if enabled, configures the node to proceed immediately to the next height once the node has received all precommits for a block, forgoing the commit timeout. |  6  |
+
+## ABCIParams
+
+| Name                            | Type  | Description                                                                                      | Field Number |
+|---------------------------------|-------|--------------------------------------------------------------------------------------------------|---|
+| vote_extensions_enable_height   | int64 |                                                                                                  | 1 |
+| recheck_tx                      | bool  | Indicated whether to run CheckTx on all remaining transactions after every execution of a block. | 2 |
 
 ## Proof
 
