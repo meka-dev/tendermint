@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/tendermint/tendermint/crypto"
-	"io"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
@@ -109,7 +109,7 @@ func (b *httpBlockBuilder) RegisterProposer(ctx context.Context, req *registerPr
 	return &resp, b.do(ctx, req, &resp)
 }
 
-func (b *httpBlockBuilder) do(ctx context.Context, req, resp any) error {
+func (b *httpBlockBuilder) do(ctx context.Context, req, resp interface{}) error {
 	body, err := json.Marshal(req)
 	if err != nil {
 		return fmt.Errorf("marshal request: %w", err)
@@ -129,7 +129,7 @@ func (b *httpBlockBuilder) do(ctx context.Context, req, resp any) error {
 
 	defer res.Body.Close()
 
-	body, err = io.ReadAll(res.Body)
+	body, err = ioutil.ReadAll(res.Body)
 	if err != nil {
 		return fmt.Errorf("read response: %w", err)
 	}
@@ -138,7 +138,7 @@ func (b *httpBlockBuilder) do(ctx context.Context, req, resp any) error {
 		return fmt.Errorf("response code %d (%s)", res.StatusCode, body)
 	}
 
-	if err = json.Unmarshal(body, &resp); err != nil {
+	if err = json.Unmarshal(body, resp); err != nil {
 		return fmt.Errorf("unmarshal response: %w", err)
 	}
 
