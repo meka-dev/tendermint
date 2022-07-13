@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 
@@ -46,18 +47,29 @@ type BuildBlockResponse struct {
 //
 //
 
+const DefaultHTTPBlockBuilderTimeout = 500 * time.Millisecond
+
 type HTTPBlockBuilder struct {
 	baseurl string
 	client  *http.Client
 }
 
 func NewHTTPBlockBuilder(baseurl string, timeout time.Duration) (*HTTPBlockBuilder, error) {
-	if !strings.HasPrefix(baseurl, "https://") {
-		return nil, fmt.Errorf("HTTPBlockBuilder needs an `https://` baseurl")
+	if !strings.HasPrefix(baseurl, "http") {
+		baseurl = "https://" + baseurl
 	}
 
+	u, err := url.Parse(baseurl)
+	if err != nil {
+		return nil, fmt.Errorf("invalid URL: %w", err)
+	}
+
+	u.Scheme = "https"
+	u.Path = ""
+	baseurl = u.String()
+
 	if timeout == 0 {
-		timeout = 500 * time.Millisecond
+		timeout = DefaultHTTPBlockBuilderTimeout
 	}
 
 	return &HTTPBlockBuilder{
