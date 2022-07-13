@@ -104,7 +104,10 @@ type registerProposerResponse struct {
 	Result string `json:"result"`
 }
 
-func (b *httpBlockBuilder) RegisterProposer(ctx context.Context, req *registerProposerRequest) (*registerProposerResponse, error) {
+func (b *httpBlockBuilder) RegisterProposer(
+	ctx context.Context,
+	req *registerProposerRequest,
+) (*registerProposerResponse, error) {
 	var resp registerProposerResponse
 	return &resp, b.do(ctx, req, &resp)
 }
