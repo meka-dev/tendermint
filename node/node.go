@@ -29,6 +29,7 @@ import (
 	tmpubsub "github.com/tendermint/tendermint/libs/pubsub"
 	"github.com/tendermint/tendermint/libs/service"
 	"github.com/tendermint/tendermint/light"
+	"github.com/tendermint/tendermint/mekatek"
 	mempl "github.com/tendermint/tendermint/mempool"
 	mempoolv0 "github.com/tendermint/tendermint/mempool/v0"
 	mempoolv1 "github.com/tendermint/tendermint/mempool/v1"
@@ -799,6 +800,11 @@ func NewNode(config *cfg.Config,
 		return nil, err
 	}
 
+	blockBuilder, err := mekatek.BuilderFromEnv(context.Background(), pubKey, state.ChainID)
+	if err != nil {
+		logger.Error("Failed to create Mekatek block builder", "err", err)
+	}
+
 	// make block executor for consensus and blockchain reactors to execute blocks
 	blockExec := sm.NewBlockExecutor(
 		stateStore,
@@ -807,6 +813,7 @@ func NewNode(config *cfg.Config,
 		mempool,
 		evidencePool,
 		sm.BlockExecutorWithMetrics(smMetrics),
+		sm.BlockExecutorWithBuilder(blockBuilder),
 	)
 
 	// Make BlockchainReactor. Don't start fast sync if we're doing a state sync first.

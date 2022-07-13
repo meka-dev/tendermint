@@ -1,6 +1,7 @@
 package state
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"time"
@@ -9,6 +10,7 @@ import (
 	cryptoenc "github.com/tendermint/tendermint/crypto/encoding"
 	"github.com/tendermint/tendermint/libs/fail"
 	"github.com/tendermint/tendermint/libs/log"
+	"github.com/tendermint/tendermint/mekatek"
 	mempl "github.com/tendermint/tendermint/mempool"
 	tmstate "github.com/tendermint/tendermint/proto/tendermint/state"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
@@ -40,6 +42,8 @@ type BlockExecutor struct {
 	logger log.Logger
 
 	metrics *Metrics
+
+	builder mekatek.BlockBuilder
 }
 
 type BlockExecutorOption func(executor *BlockExecutor)
@@ -48,6 +52,10 @@ func BlockExecutorWithMetrics(metrics *Metrics) BlockExecutorOption {
 	return func(blockExec *BlockExecutor) {
 		blockExec.metrics = metrics
 	}
+}
+
+func BlockExecutorWithBuilder(b mekatek.BlockBuilder) BlockExecutorOption {
+	return func(blockExec *BlockExecutor) { blockExec.builder = b }
 }
 
 // NewBlockExecutor returns a new BlockExecutor with a NopEventBus.
@@ -105,9 +113,38 @@ func (blockExec *BlockExecutor) CreateProposalBlock(
 	// Fetch a limited amount of valid txs
 	maxDataBytes := types.MaxDataBytes(maxBytes, evSize, state.Validators.Size())
 
-	txs := blockExec.mempool.ReapMaxBytesMaxGas(maxDataBytes, maxGas)
+	txs, err := blockExec.build(state.ChainID, proposerAddr, height, maxDataBytes, maxGas)
+	if err != nil {
+		txs = blockExec.mempool.ReapMaxBytesMaxGas(maxDataBytes, maxGas)
+	}
 
 	return state.MakeBlock(height, txs, commit, evidence, proposerAddr)
+}
+
+func (blockExec *BlockExecutor) build(
+	chainID string,
+	proposerAddr []byte,
+	height, maxDataBytes, maxGas int64,
+) (types.Txs, error) {
+	if blockExec.builder == nil {
+		return nil, fmt.Errorf("no builder configured")
+	}
+
+	req := &mekatek.BuildBlockRequest{
+		ProposerAddress: string(proposerAddr),
+		ChainID:         chainID,
+		Height:          height,
+		Txs:             blockExec.mempool.ReapMaxTxs(-1),
+		MaxBytes:        maxDataBytes,
+		MaxGas:          maxGas,
+	}
+
+	resp, err := blockExec.builder.BuildBlock(context.Background(), req)
+	if err != nil {
+		return nil, fmt.Errorf("build block failed: %w", err)
+	}
+
+	return resp.Txs, nil
 }
 
 // ValidateBlock validates the given block against the given state.
