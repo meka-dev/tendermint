@@ -30,12 +30,12 @@ import (
 	tmpubsub "github.com/tendermint/tendermint/libs/pubsub"
 	"github.com/tendermint/tendermint/libs/service"
 	"github.com/tendermint/tendermint/light"
+	"github.com/tendermint/tendermint/mekatek"
 	mempl "github.com/tendermint/tendermint/mempool"
 	mempoolv0 "github.com/tendermint/tendermint/mempool/v0"
 	mempoolv1 "github.com/tendermint/tendermint/mempool/v1"
 	"github.com/tendermint/tendermint/p2p"
 	"github.com/tendermint/tendermint/p2p/pex"
-	"github.com/tendermint/tendermint/pbs"
 	"github.com/tendermint/tendermint/privval"
 	"github.com/tendermint/tendermint/proxy"
 	rpccore "github.com/tendermint/tendermint/rpc/core"
@@ -804,12 +804,12 @@ func NewNode(config *cfg.Config,
 	blockBuilderAPIURL := os.Getenv("BLOCK_BUILDER_API_URL")
 	blockBuilderTimeout, _ := time.ParseDuration(os.Getenv("BLOCK_BUILDER_TIMEOUT"))
 
-	blockBuilder, err := pbs.NewHTTPBlockBuilder(blockBuilderAPIURL, blockBuilderTimeout)
+	blockBuilder, err := mekatek.NewHTTPBlockBuilder(blockBuilderAPIURL, blockBuilderTimeout)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create block builder: %w", err)
 	}
 
-	_, err = blockBuilder.RegisterProposer(context.Background(), &pbs.RegisterProposerRequest{
+	_, err = blockBuilder.RegisterProposer(context.Background(), &mekatek.RegisterProposerRequest{
 		PaymentAddress: os.Getenv("BLOCK_BUILDER_PAYMENT_ADDRESS"),
 		PubKey:         pubKey.Bytes(),
 		PubKeyType:     pubKey.Type(),

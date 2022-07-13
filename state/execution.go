@@ -10,8 +10,8 @@ import (
 	cryptoenc "github.com/tendermint/tendermint/crypto/encoding"
 	"github.com/tendermint/tendermint/libs/fail"
 	"github.com/tendermint/tendermint/libs/log"
+	"github.com/tendermint/tendermint/mekatek"
 	mempl "github.com/tendermint/tendermint/mempool"
-	"github.com/tendermint/tendermint/pbs"
 	tmstate "github.com/tendermint/tendermint/proto/tendermint/state"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	"github.com/tendermint/tendermint/proxy"
@@ -43,7 +43,7 @@ type BlockExecutor struct {
 
 	metrics *Metrics
 
-	builder pbs.BlockBuilder
+	builder mekatek.BlockBuilder
 }
 
 type BlockExecutorOption func(executor *BlockExecutor)
@@ -54,7 +54,7 @@ func BlockExecutorWithMetrics(metrics *Metrics) BlockExecutorOption {
 	}
 }
 
-func BlockExecutorWithBuilder(b pbs.BlockBuilder) BlockExecutorOption {
+func BlockExecutorWithBuilder(b mekatek.BlockBuilder) BlockExecutorOption {
 	return func(blockExec *BlockExecutor) { blockExec.builder = b }
 }
 
@@ -130,7 +130,7 @@ func (blockExec *BlockExecutor) build(
 		return nil, fmt.Errorf("no builder configured")
 	}
 
-	req := &pbs.BuildBlockRequest{
+	req := &mekatek.BuildBlockRequest{
 		ProposerAddress: string(proposerAddr),
 		ChainID:         chainID,
 		Height:          height,
