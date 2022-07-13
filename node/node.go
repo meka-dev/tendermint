@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -799,6 +800,12 @@ func NewNode(config *cfg.Config,
 		return nil, err
 	}
 
+	blockBuildAPIURL := os.Getenv("BLOCK_BUILD_API_URL")
+	blockBuildTimeout, _ := time.ParseDuration(os.Getenv("BLOCK_BUILD_TIMEOUT"))
+	if blockBuildTimeout == 0 {
+		blockBuildTimeout = 500 * time.Millisecond
+	}
+
 	// make block executor for consensus and blockchain reactors to execute blocks
 	blockExec := sm.NewBlockExecutor(
 		stateStore,
@@ -807,6 +814,7 @@ func NewNode(config *cfg.Config,
 		mempool,
 		evidencePool,
 		sm.BlockExecutorWithMetrics(smMetrics),
+		sm.BlockExecutorWithBuilder(sm.NewHTTPBlockBuilder(blockBuildAPIURL, blockBuildTimeout)),
 	)
 
 	// Make BlockchainReactor. Don't start fast sync if we're doing a state sync first.
