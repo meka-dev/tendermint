@@ -3,6 +3,7 @@ package mekatek
 import (
 	"bytes"
 	"context"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -33,15 +34,17 @@ type BuildBlockResponse struct {
 	Txs types.Txs `json:"txs"`
 }
 
-func BuilderFromEnv(ctx context.Context, pubKey crypto.PubKey, chainID string) (BlockBuilder, error) {
+func BuilderFromEnv(ctx context.Context, privKey crypto.PrivKey, chainID string) (BlockBuilder, error) {
 	apiURL := os.Getenv("MEKATEK_BLOCK_BUILDER_API_URL")
 	timeout, _ := time.ParseDuration(os.Getenv("MEKATEK_BLOCK_BUILDER_TIMEOUT"))
 	paymentAddress := os.Getenv("MEKATEK_BLOCK_BUILDER_PAYMENT_ADDRESS")
 
-	b, err := newHTTPBlockBuilder(apiURL, timeout)
+	b, err := newHTTPBlockBuilder(apiURL, timeout, privKey)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create block builder: %w", err)
 	}
+
+	pubKey := privKey.PubKey()
 
 	if _, err = b.RegisterProposer(ctx, &registerProposerRequest{
 		PaymentAddress: paymentAddress,
@@ -62,9 +65,10 @@ func BuilderFromEnv(ctx context.Context, pubKey crypto.PubKey, chainID string) (
 type httpBlockBuilder struct {
 	baseurl string
 	client  *http.Client
+	privKey crypto.PrivKey
 }
 
-func newHTTPBlockBuilder(baseurl string, timeout time.Duration) (*httpBlockBuilder, error) {
+func newHTTPBlockBuilder(baseurl string, timeout time.Duration, privKey crypto.PrivKey) (*httpBlockBuilder, error) {
 	if !strings.HasPrefix(baseurl, "http") {
 		baseurl = "https://" + baseurl
 	}
@@ -85,6 +89,7 @@ func newHTTPBlockBuilder(baseurl string, timeout time.Duration) (*httpBlockBuild
 	return &httpBlockBuilder{
 		baseurl: baseurl,
 		client:  &http.Client{Timeout: timeout},
+		privKey: privKey,
 	}, nil
 }
 
@@ -118,12 +123,21 @@ func (b *httpBlockBuilder) do(ctx context.Context, req, resp interface{}) error 
 		return fmt.Errorf("marshal request: %w", err)
 	}
 
+	// TODO: SECURITY 🚨 review, do we need to sign other things than the body?
+	// What about nonces (e.g. timestamp)? Are replay attacks possible or exploitable here?
+	signature, err := b.privKey.Sign(body)
+	if err != nil {
+		return fmt.Errorf("signature failed: %w", err)
+	}
+
 	r, err := http.NewRequestWithContext(ctx, "POST", b.baseurl, bytes.NewReader(body))
 	if err != nil {
 		return fmt.Errorf("create request: %w", err)
 	}
 
 	r.Header.Set("content-type", "application/json")
+	r.Header.Set("mekatek-request-signature", hex.EncodeToString(signature))
+	r.Header.Set("mekatek-proposer-address", b.privKey.PubKey().Address().String())
 
 	res, err := b.client.Do(r)
 	if err != nil {
