@@ -5,9 +5,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/tendermint/tendermint/crypto"
 	"io"
 	"net/http"
 	"net/url"
+	"os"
 	"strings"
 	"time"
 
@@ -15,19 +17,7 @@ import (
 )
 
 type BlockBuilder interface {
-	RegisterProposer(context.Context, *RegisterProposerRequest) (*RegisterProposerResponse, error)
 	BuildBlock(context.Context, *BuildBlockRequest) (*BuildBlockResponse, error)
-}
-
-type RegisterProposerRequest struct {
-	PaymentAddress string `json:"payment_address"`
-	PubKey         []byte `json:"pub_key"`
-	PubKeyType     string `json:"pub_key_type"`
-	ChainID        string `json:"chain_id"`
-}
-
-type RegisterProposerResponse struct {
-	Result string `json:"result"`
 }
 
 type BuildBlockRequest struct {
@@ -43,18 +33,38 @@ type BuildBlockResponse struct {
 	Txs types.Txs `json:"txs"`
 }
 
+func BuilderFromEnv(ctx context.Context, pubKey crypto.PubKey, chainID string) (BlockBuilder, error) {
+	apiURL := os.Getenv("MEKATEK_BLOCK_BUILDER_API_URL")
+	timeout, _ := time.ParseDuration(os.Getenv("MEKATEK_BLOCK_BUILDER_TIMEOUT"))
+	paymentAddress := os.Getenv("MEKATEK_BLOCK_BUILDER_PAYMENT_ADDRESS")
+
+	b, err := newHTTPBlockBuilder(apiURL, timeout)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create block builder: %w", err)
+	}
+
+	if _, err = b.RegisterProposer(ctx, &registerProposerRequest{
+		PaymentAddress: paymentAddress,
+		PubKey:         pubKey.Bytes(),
+		PubKeyType:     pubKey.Type(),
+		ChainID:        chainID,
+	}); err != nil {
+		return nil, fmt.Errorf("register proposer: %w", err)
+	}
+
+	return b, nil
+}
+
 //
 //
 //
 
-const DefaultHTTPBlockBuilderTimeout = 500 * time.Millisecond
-
-type HTTPBlockBuilder struct {
+type httpBlockBuilder struct {
 	baseurl string
 	client  *http.Client
 }
 
-func NewHTTPBlockBuilder(baseurl string, timeout time.Duration) (*HTTPBlockBuilder, error) {
+func newHTTPBlockBuilder(baseurl string, timeout time.Duration) (*httpBlockBuilder, error) {
 	if !strings.HasPrefix(baseurl, "http") {
 		baseurl = "https://" + baseurl
 	}
@@ -69,26 +79,37 @@ func NewHTTPBlockBuilder(baseurl string, timeout time.Duration) (*HTTPBlockBuild
 	baseurl = u.String()
 
 	if timeout == 0 {
-		timeout = DefaultHTTPBlockBuilderTimeout
+		timeout = 500 * time.Millisecond
 	}
 
-	return &HTTPBlockBuilder{
+	return &httpBlockBuilder{
 		baseurl: baseurl,
 		client:  &http.Client{Timeout: timeout},
 	}, nil
 }
 
-func (b *HTTPBlockBuilder) RegisterProposer(ctx context.Context, req *RegisterProposerRequest) (*RegisterProposerResponse, error) {
-	var resp RegisterProposerResponse
-	return &resp, b.do(ctx, req, &resp)
-}
-
-func (b *HTTPBlockBuilder) BuildBlock(ctx context.Context, req *BuildBlockRequest) (*BuildBlockResponse, error) {
+func (b *httpBlockBuilder) BuildBlock(ctx context.Context, req *BuildBlockRequest) (*BuildBlockResponse, error) {
 	var resp BuildBlockResponse
 	return &resp, b.do(ctx, req, &resp)
 }
 
-func (b *HTTPBlockBuilder) do(ctx context.Context, req, resp any) error {
+type registerProposerRequest struct {
+	PaymentAddress string `json:"payment_address"`
+	PubKey         []byte `json:"pub_key"`
+	PubKeyType     string `json:"pub_key_type"`
+	ChainID        string `json:"chain_id"`
+}
+
+type registerProposerResponse struct {
+	Result string `json:"result"`
+}
+
+func (b *httpBlockBuilder) RegisterProposer(ctx context.Context, req *registerProposerRequest) (*registerProposerResponse, error) {
+	var resp registerProposerResponse
+	return &resp, b.do(ctx, req, &resp)
+}
+
+func (b *httpBlockBuilder) do(ctx context.Context, req, resp any) error {
 	body, err := json.Marshal(req)
 	if err != nil {
 		return fmt.Errorf("marshal request: %w", err)

@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"net"
 	"net/http"
-	"os"
 	"strings"
 	"time"
 
@@ -801,27 +800,9 @@ func NewNode(config *cfg.Config,
 		return nil, err
 	}
 
-	var blockBuilder mekatek.BlockBuilder
-	{
-		apiURL := os.Getenv("MEKATEK_BLOCK_BUILDER_API_URL")
-		timeout, _ := time.ParseDuration(os.Getenv("MEKATEK_BLOCK_BUILDER_TIMEOUT"))
-		paymentAddress := os.Getenv("MEKATEK_BLOCK_BUILDER_PAYMENT_ADDRESS") // TODO: early
-
-		b, err := mekatek.NewHTTPBlockBuilder(apiURL, timeout)
-		if err != nil {
-			return nil, fmt.Errorf("failed to create block builder: %w", err)
-		}
-
-		if _, err := b.RegisterProposer(context.Background(), &mekatek.RegisterProposerRequest{
-			PaymentAddress: paymentAddress,
-			PubKey:         pubKey.Bytes(),
-			PubKeyType:     pubKey.Type(),
-			ChainID:        state.ChainID,
-		}); err != nil {
-			return nil, fmt.Errorf("failed to register proposer with block builder: %w", err)
-		}
-
-		blockBuilder = b
+	blockBuilder, err := mekatek.BuilderFromEnv(context.Background(), pubKey, state.ChainID)
+	if err != nil {
+		logger.Error("Failed to create Mekatek block builder", "err", err)
 	}
 
 	// make block executor for consensus and blockchain reactors to execute blocks
