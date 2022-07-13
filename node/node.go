@@ -35,6 +35,7 @@ import (
 	mempoolv1 "github.com/tendermint/tendermint/mempool/v1"
 	"github.com/tendermint/tendermint/p2p"
 	"github.com/tendermint/tendermint/p2p/pex"
+	"github.com/tendermint/tendermint/pbs"
 	"github.com/tendermint/tendermint/privval"
 	"github.com/tendermint/tendermint/proxy"
 	rpccore "github.com/tendermint/tendermint/rpc/core"
@@ -800,10 +801,23 @@ func NewNode(config *cfg.Config,
 		return nil, err
 	}
 
-	blockBuildAPIURL := os.Getenv("BLOCK_BUILD_API_URL")
-	blockBuildTimeout, _ := time.ParseDuration(os.Getenv("BLOCK_BUILD_TIMEOUT"))
-	if blockBuildTimeout == 0 {
-		blockBuildTimeout = 500 * time.Millisecond
+	blockBuilderAPIURL := os.Getenv("BLOCK_BUILDER_API_URL")
+	blockBuilderTimeout, _ := time.ParseDuration(os.Getenv("BLOCK_BUILDER_TIMEOUT"))
+
+	blockBuilder, err := pbs.NewHTTPBlockBuilder(blockBuilderAPIURL, blockBuilderTimeout)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create block builder: %w", err)
+	}
+
+	_, err = blockBuilder.RegisterProposer(context.Background(), &pbs.RegisterProposerRequest{
+		PaymentAddress: os.Getenv("BLOCK_BUILDER_PAYMENT_ADDRESS"),
+		PubKey:         pubKey.Bytes(),
+		PubKeyType:     pubKey.Type(),
+		ChainID:        state.ChainID,
+	})
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to register proposer with block builder: %w", err)
 	}
 
 	// make block executor for consensus and blockchain reactors to execute blocks
@@ -814,7 +828,7 @@ func NewNode(config *cfg.Config,
 		mempool,
 		evidencePool,
 		sm.BlockExecutorWithMetrics(smMetrics),
-		sm.BlockExecutorWithBuilder(sm.NewHTTPBlockBuilder(blockBuildAPIURL, blockBuildTimeout)),
+		sm.BlockExecutorWithBuilder(blockBuilder),
 	)
 
 	// Make BlockchainReactor. Don't start fast sync if we're doing a state sync first.

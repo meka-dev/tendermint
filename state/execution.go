@@ -11,6 +11,7 @@ import (
 	"github.com/tendermint/tendermint/libs/fail"
 	"github.com/tendermint/tendermint/libs/log"
 	mempl "github.com/tendermint/tendermint/mempool"
+	"github.com/tendermint/tendermint/pbs"
 	tmstate "github.com/tendermint/tendermint/proto/tendermint/state"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	"github.com/tendermint/tendermint/proxy"
@@ -42,7 +43,7 @@ type BlockExecutor struct {
 
 	metrics *Metrics
 
-	builder BlockBuilder
+	builder pbs.BlockBuilder
 }
 
 type BlockExecutorOption func(executor *BlockExecutor)
@@ -53,7 +54,7 @@ func BlockExecutorWithMetrics(metrics *Metrics) BlockExecutorOption {
 	}
 }
 
-func BlockExecutorWithBuilder(b BlockBuilder) BlockExecutorOption {
+func BlockExecutorWithBuilder(b pbs.BlockBuilder) BlockExecutorOption {
 	return func(blockExec *BlockExecutor) { blockExec.builder = b }
 }
 
@@ -129,7 +130,7 @@ func (blockExec *BlockExecutor) build(
 		return nil, fmt.Errorf("no builder configured")
 	}
 
-	req := &BuildBlockRequest{
+	req := &pbs.BuildBlockRequest{
 		ProposerAddress: string(proposerAddr),
 		ChainID:         chainID,
 		Height:          height,
