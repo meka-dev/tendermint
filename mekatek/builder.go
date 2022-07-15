@@ -25,19 +25,6 @@ type BlockBuilder interface {
 	BuildBlock(context.Context, *BuildBlockRequest) (*BuildBlockResponse, error)
 }
 
-type BuildBlockRequest struct {
-	ProposerAddress string    `json:"proposer_address"`
-	ChainID         string    `json:"chain_id"`
-	Height          int64     `json:"height"`
-	Txs             types.Txs `json:"txs"`
-	MaxBytes        int64     `json:"max_bytes"`
-	MaxGas          int64     `json:"max_gas"`
-}
-
-type BuildBlockResponse struct {
-	Txs types.Txs `json:"txs"`
-}
-
 func NewBuilder(chainID string, privValidator types.PrivValidator, apiURL *url.URL, apiTimeout time.Duration, paymentAddr string) (BlockBuilder, error) {
 	pubKey, err := privValidator.GetPubKey()
 	if err != nil {
@@ -107,7 +94,11 @@ type httpBlockBuilder struct {
 	validator types.PrivValidator
 }
 
-func newHTTPBlockBuilder(baseurl *url.URL, timeout time.Duration, v types.PrivValidator) (*httpBlockBuilder, error) {
+func newHTTPBlockBuilder(
+	baseurl *url.URL,
+	timeout time.Duration,
+	v types.PrivValidator,
+) (*httpBlockBuilder, error) {
 	return &httpBlockBuilder{
 		baseurl:   baseurl,
 		client:    &http.Client{Timeout: timeout},
@@ -115,20 +106,12 @@ func newHTTPBlockBuilder(baseurl *url.URL, timeout time.Duration, v types.PrivVa
 	}, nil
 }
 
-func (b *httpBlockBuilder) BuildBlock(ctx context.Context, req *BuildBlockRequest) (*BuildBlockResponse, error) {
+func (b *httpBlockBuilder) BuildBlock(
+	ctx context.Context,
+	req *BuildBlockRequest,
+) (*BuildBlockResponse, error) {
 	var resp BuildBlockResponse
-	return &resp, b.do(ctx, req, &resp)
-}
-
-type registerProposerRequest struct {
-	ChainID        string `json:"chain_id"`
-	PaymentAddress string `json:"payment_address"`
-	PubKeyBytes    []byte `json:"pub_key_bytes"`
-	PubKeyType     string `json:"pub_key_type"`
-}
-
-type registerProposerResponse struct {
-	Result string `json:"result"`
+	return &resp, b.do(ctx, "", req, &resp)
 }
 
 func (b *httpBlockBuilder) RegisterProposer(
@@ -136,10 +119,10 @@ func (b *httpBlockBuilder) RegisterProposer(
 	req *registerProposerRequest,
 ) (*registerProposerResponse, error) {
 	var resp registerProposerResponse
-	return &resp, b.do(ctx, req, &resp)
+	return &resp, b.do(ctx, "/proposers/register", req, &resp)
 }
 
-func (b *httpBlockBuilder) do(ctx context.Context, req, resp interface{}) error {
+func (b *httpBlockBuilder) do(ctx context.Context, path string, req, resp interface{}) error {
 	pubKey, err := b.validator.GetPubKey()
 	if err != nil {
 		return fmt.Errorf("get public key: %w", err)
@@ -157,7 +140,11 @@ func (b *httpBlockBuilder) do(ctx context.Context, req, resp interface{}) error 
 		return fmt.Errorf("signature failed: %w", err)
 	}
 
-	r, err := http.NewRequestWithContext(ctx, "POST", b.baseurl.String(), bytes.NewReader(body))
+	u := b.baseurl
+	u.Path = path
+	uri := u.String()
+
+	r, err := http.NewRequestWithContext(ctx, "POST", uri, bytes.NewReader(body))
 	if err != nil {
 		return fmt.Errorf("create request: %w", err)
 	}
@@ -187,4 +174,32 @@ func (b *httpBlockBuilder) do(ctx context.Context, req, resp interface{}) error 
 	}
 
 	return nil
+}
+
+//
+//
+//
+
+type BuildBlockRequest struct {
+	ProposerAddress string    `json:"proposer_address"`
+	ChainID         string    `json:"chain_id"`
+	Height          int64     `json:"height"`
+	Txs             types.Txs `json:"txs"`
+	MaxBytes        int64     `json:"max_bytes"`
+	MaxGas          int64     `json:"max_gas"`
+}
+
+type BuildBlockResponse struct {
+	Txs types.Txs `json:"txs"`
+}
+
+type registerProposerRequest struct {
+	ChainID        string `json:"chain_id"`
+	PaymentAddress string `json:"payment_address"`
+	PubKeyBytes    []byte `json:"pub_key_bytes"`
+	PubKeyType     string `json:"pub_key_type"`
+}
+
+type registerProposerResponse struct {
+	Result string `json:"result"`
 }
