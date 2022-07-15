@@ -55,7 +55,9 @@ func BlockExecutorWithMetrics(metrics *Metrics) BlockExecutorOption {
 }
 
 func BlockExecutorWithBuilder(b mekatek.BlockBuilder) BlockExecutorOption {
-	return func(blockExec *BlockExecutor) { blockExec.builder = b }
+	return func(blockExec *BlockExecutor) {
+		blockExec.builder = b
+	}
 }
 
 // NewBlockExecutor returns a new BlockExecutor with a NopEventBus.

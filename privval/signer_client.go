@@ -131,3 +131,7 @@ func (sc *SignerClient) SignProposal(chainID string, proposal *tmproto.Proposal)
 
 	return nil
 }
+
+func (sc *SignerClient) SignBytes(p []byte) ([]byte, error) {
+	return nil, fmt.Errorf("SignerClient does not implement SignBytes")
+}

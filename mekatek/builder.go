@@ -13,8 +13,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/types"
+)
+
+var (
+	DefaultBlockBuilderAPIRURL = &url.URL{Scheme: "https", Host: "api.mekatek.xyz"}
+	DefaultBlockBuilderTimeout = 1 * time.Second
 )
 
 type BlockBuilder interface {
@@ -34,28 +38,63 @@ type BuildBlockResponse struct {
 	Txs types.Txs `json:"txs"`
 }
 
-func BuilderFromEnv(ctx context.Context, privKey crypto.PrivKey, chainID string) (BlockBuilder, error) {
-	apiURL := os.Getenv("MEKATEK_BLOCK_BUILDER_API_URL")
-	timeout, _ := time.ParseDuration(os.Getenv("MEKATEK_BLOCK_BUILDER_TIMEOUT"))
-	paymentAddress := os.Getenv("MEKATEK_BLOCK_BUILDER_PAYMENT_ADDRESS")
-
-	b, err := newHTTPBlockBuilder(apiURL, timeout, privKey)
+func NewBuilder(chainID string, privValidator types.PrivValidator, apiURL *url.URL, apiTimeout time.Duration, paymentAddr string) (BlockBuilder, error) {
+	pubKey, err := privValidator.GetPubKey()
 	if err != nil {
-		return nil, fmt.Errorf("failed to create block builder: %w", err)
+		return nil, fmt.Errorf("get public key from validator: %w", err)
 	}
 
-	pubKey := privKey.PubKey()
+	bb, err := newHTTPBlockBuilder(apiURL, apiTimeout, privValidator)
+	if err != nil {
+		return nil, fmt.Errorf("create HTTP block builder: %w", err)
+	}
 
-	if _, err = b.RegisterProposer(ctx, &registerProposerRequest{
-		PaymentAddress: paymentAddress,
-		PubKey:         pubKey.Bytes(),
-		PubKeyType:     pubKey.Type(),
+	if _, err = bb.RegisterProposer(context.Background(), &registerProposerRequest{
 		ChainID:        chainID,
+		PaymentAddress: paymentAddr,
+		PubKeyBytes:    pubKey.Bytes(),
+		PubKeyType:     pubKey.Type(),
 	}); err != nil {
 		return nil, fmt.Errorf("register proposer: %w", err)
 	}
 
-	return b, nil
+	return bb, nil
+}
+
+func GetURIFromEnv(envkey string, def *url.URL) *url.URL {
+	s := os.Getenv(envkey)
+	if s == "" {
+		return def
+	}
+
+	if !strings.HasPrefix(s, "http") {
+		s = def.Scheme + s
+	}
+
+	u, err := url.Parse(s)
+	if err != nil {
+		return def
+	}
+
+	return &url.URL{
+		Scheme: def.Scheme, // default URL defines scheme (e.g. HTTPS)
+		Host:   u.Host,     // provided URI defines host:port
+		Path:   def.Path,   // default URL defines path
+	}
+}
+
+func GetDurationFromEnv(envkey string, def time.Duration) time.Duration {
+	s := os.Getenv(envkey)
+	if s == "" {
+		return def
+	}
+
+	d, err := time.ParseDuration(s)
+	if err != nil {
+		return def
+	}
+
+	return d
 }
 
 //
@@ -63,33 +102,16 @@ func BuilderFromEnv(ctx context.Context, privKey crypto.PrivKey, chainID string)
 //
 
 type httpBlockBuilder struct {
-	baseurl string
-	client  *http.Client
-	privKey crypto.PrivKey
+	baseurl   *url.URL
+	client    *http.Client
+	validator types.PrivValidator
 }
 
-func newHTTPBlockBuilder(baseurl string, timeout time.Duration, privKey crypto.PrivKey) (*httpBlockBuilder, error) {
-	if !strings.HasPrefix(baseurl, "http") {
-		baseurl = "https://" + baseurl
-	}
-
-	u, err := url.Parse(baseurl)
-	if err != nil {
-		return nil, fmt.Errorf("invalid URL: %w", err)
-	}
-
-	u.Scheme = "https"
-	u.Path = ""
-	baseurl = u.String()
-
-	if timeout == 0 {
-		timeout = 500 * time.Millisecond
-	}
-
+func newHTTPBlockBuilder(baseurl *url.URL, timeout time.Duration, v types.PrivValidator) (*httpBlockBuilder, error) {
 	return &httpBlockBuilder{
-		baseurl: baseurl,
-		client:  &http.Client{Timeout: timeout},
-		privKey: privKey,
+		baseurl:   baseurl,
+		client:    &http.Client{Timeout: timeout},
+		validator: v,
 	}, nil
 }
 
@@ -99,10 +121,10 @@ func (b *httpBlockBuilder) BuildBlock(ctx context.Context, req *BuildBlockReques
 }
 
 type registerProposerRequest struct {
-	PaymentAddress string `json:"payment_address"`
-	PubKey         []byte `json:"pub_key"`
-	PubKeyType     string `json:"pub_key_type"`
 	ChainID        string `json:"chain_id"`
+	PaymentAddress string `json:"payment_address"`
+	PubKeyBytes    []byte `json:"pub_key_bytes"`
+	PubKeyType     string `json:"pub_key_type"`
 }
 
 type registerProposerResponse struct {
@@ -118,6 +140,11 @@ func (b *httpBlockBuilder) RegisterProposer(
 }
 
 func (b *httpBlockBuilder) do(ctx context.Context, req, resp interface{}) error {
+	pubKey, err := b.validator.GetPubKey()
+	if err != nil {
+		return fmt.Errorf("get public key: %w", err)
+	}
+
 	body, err := json.Marshal(req)
 	if err != nil {
 		return fmt.Errorf("marshal request: %w", err)
@@ -125,23 +152,23 @@ func (b *httpBlockBuilder) do(ctx context.Context, req, resp interface{}) error 
 
 	// TODO: SECURITY 🚨 review, do we need to sign other things than the body?
 	// What about nonces (e.g. timestamp)? Are replay attacks possible or exploitable here?
-	signature, err := b.privKey.Sign(body)
+	signature, err := b.validator.SignBytes(body)
 	if err != nil {
 		return fmt.Errorf("signature failed: %w", err)
 	}
 
-	r, err := http.NewRequestWithContext(ctx, "POST", b.baseurl, bytes.NewReader(body))
+	r, err := http.NewRequestWithContext(ctx, "POST", b.baseurl.String(), bytes.NewReader(body))
 	if err != nil {
 		return fmt.Errorf("create request: %w", err)
 	}
 
 	r.Header.Set("content-type", "application/json")
+	r.Header.Set("mekatek-proposer-address", pubKey.Address().String())
 	r.Header.Set("mekatek-request-signature", hex.EncodeToString(signature))
-	r.Header.Set("mekatek-proposer-address", b.privKey.PubKey().Address().String())
 
 	res, err := b.client.Do(r)
 	if err != nil {
-		return fmt.Errorf("execute: %w", err)
+		return fmt.Errorf("execute request: %w", err)
 	}
 
 	defer res.Body.Close()
@@ -152,7 +179,7 @@ func (b *httpBlockBuilder) do(ctx context.Context, req, resp interface{}) error 
 	}
 
 	if res.StatusCode != http.StatusOK {
-		return fmt.Errorf("response code %d (%s)", res.StatusCode, body)
+		return fmt.Errorf("response code %d (%s)", res.StatusCode, strings.TrimSpace(string(body)))
 	}
 
 	if err = json.Unmarshal(body, resp); err != nil {

@@ -94,3 +94,7 @@ func (sc *RetrySignerClient) SignProposal(chainID string, proposal *tmproto.Prop
 	}
 	return fmt.Errorf("exhausted all attempts to sign proposal: %w", err)
 }
+
+func (sc *RetrySignerClient) SignBytes(p []byte) ([]byte, error) {
+	return nil, fmt.Errorf("RetrySignerClient does not implement SignBytes")
+}
