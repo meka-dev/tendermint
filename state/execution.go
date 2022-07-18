@@ -6,11 +6,12 @@ import (
 	"fmt"
 	"time"
 
+	mekapbs "github.com/meka-dev/pbs"
+
 	abci "github.com/tendermint/tendermint/abci/types"
 	cryptoenc "github.com/tendermint/tendermint/crypto/encoding"
 	"github.com/tendermint/tendermint/libs/fail"
 	"github.com/tendermint/tendermint/libs/log"
-	"github.com/tendermint/tendermint/mekatek"
 	mempl "github.com/tendermint/tendermint/mempool"
 	tmstate "github.com/tendermint/tendermint/proto/tendermint/state"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
@@ -43,7 +44,7 @@ type BlockExecutor struct {
 
 	metrics *Metrics
 
-	builder mekatek.BlockBuilder
+	builder mekapbs.Builder
 }
 
 type BlockExecutorOption func(executor *BlockExecutor)
@@ -54,7 +55,7 @@ func BlockExecutorWithMetrics(metrics *Metrics) BlockExecutorOption {
 	}
 }
 
-func BlockExecutorWithBuilder(b mekatek.BlockBuilder) BlockExecutorOption {
+func BlockExecutorWithBuilder(b mekapbs.Builder) BlockExecutorOption {
 	return func(blockExec *BlockExecutor) {
 		blockExec.builder = b
 	}
@@ -132,11 +133,11 @@ func (blockExec *BlockExecutor) build(
 		return nil, fmt.Errorf("no builder configured")
 	}
 
-	req := &mekatek.BuildBlockRequest{
+	req := &mekapbs.BuildBlockRequest{
 		ProposerAddress: string(proposerAddr),
 		ChainID:         chainID,
 		Height:          height,
-		Txs:             blockExec.mempool.ReapMaxTxs(-1),
+		Txs:             mekatekFromTxsToBytes(blockExec.mempool.ReapMaxTxs(-1)),
 		MaxBytes:        maxDataBytes,
 		MaxGas:          maxGas,
 	}
@@ -146,7 +147,23 @@ func (blockExec *BlockExecutor) build(
 		return nil, fmt.Errorf("build block failed: %w", err)
 	}
 
-	return resp.Txs, nil
+	return mekatekFromBytesToTxs(resp.Txs), nil
+}
+
+func mekatekFromTxsToBytes(txs types.Txs) [][]byte {
+	res := make([][]byte, len(txs))
+	for i := range txs {
+		res[i] = txs[i]
+	}
+	return res
+}
+
+func mekatekFromBytesToTxs(ps [][]byte) types.Txs {
+	res := make(types.Txs, len(ps))
+	for i := range ps {
+		res[i] = ps[i]
+	}
+	return res
 }
 
 // ValidateBlock validates the given block against the given state.
