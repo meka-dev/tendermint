@@ -33,7 +33,6 @@ import (
 	tmpubsub "github.com/tendermint/tendermint/libs/pubsub"
 	"github.com/tendermint/tendermint/libs/service"
 	"github.com/tendermint/tendermint/light"
-	"github.com/tendermint/tendermint/mekatek"
 	mempl "github.com/tendermint/tendermint/mempool"
 	mempoolv0 "github.com/tendermint/tendermint/mempool/v0"
 	mempoolv1 "github.com/tendermint/tendermint/mempool/v1"
@@ -814,7 +813,7 @@ func NewNode(config *cfg.Config,
 			apiURL      = mekapbs.GetURIFromEnv("MEKATEK_BLOCK_BUILDER_API_URL")
 			apiTimeout  = mekapbs.GetDurationFromEnv("MEKATEK_BLOCK_BUILDER_TIMEOUT")
 			paymentAddr = os.Getenv("MEKATEK_BLOCK_BUILDER_PAYMENT_ADDRESS") // TODO: default to validator pubkey addr?
-			proposer    = mekatek.NewProposer(privValidator)
+			proposer    = &mekatekProposer{PrivValidator: privValidator}
 		)
 
 		bb, err := mekapbs.NewBuilder(state.ChainID, apiURL, apiTimeout, paymentAddr, proposer)
@@ -956,6 +955,28 @@ func NewNode(config *cfg.Config,
 	}
 
 	return node, nil
+}
+
+type mekatekProposer struct{ types.PrivValidator }
+
+var _ mekapbs.Proposer = (*mekatekProposer)(nil)
+
+func (p *mekatekProposer) PubKey() (bytes []byte, typ, addr string, err error) {
+	pubKey, err := p.PrivValidator.GetPubKey()
+	if err != nil {
+		return nil, "", "", fmt.Errorf("mekatek.Proposer PubKey error: %w", err)
+	}
+
+	return pubKey.Bytes(), pubKey.Type(), pubKey.Address().String(), nil
+}
+
+func (p *mekatekProposer) Sign(b []byte) ([]byte, error) {
+	signed, err := p.PrivValidator.SignBytes(b)
+	if err != nil {
+		return nil, fmt.Errorf("mekatek.Proposer Sign error: %w", err)
+	}
+
+	return signed, nil
 }
 
 // OnStart starts the Node. It implements service.Service.
