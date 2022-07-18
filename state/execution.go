@@ -143,11 +143,6 @@ func (blockExec *BlockExecutor) build(
 		MaxGas:          maxGas,
 	}
 
-	req.Txs = make([][]byte, len(mempoolTxs))
-	for i := range mempoolTxs {
-		req.Txs[i] = mempoolTxs[i]
-	}
-
 	resp, err := blockExec.builder.BuildBlock(context.Background(), req)
 	if err != nil {
 		return nil, fmt.Errorf("build block failed: %w", err)
