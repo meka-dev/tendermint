@@ -13,7 +13,7 @@ func NewProposer(v types.PrivValidator) *Proposer {
 	return &Proposer{v: v}
 }
 
-func (p Proposer) PubKey() (bytes []byte, typ, addr string, err error) {
+func (p *Proposer) PubKey() (bytes []byte, typ, addr string, err error) {
 	pubKey, err := p.v.GetPubKey()
 	if err != nil {
 		return nil, "", "", fmt.Errorf("mekatek.Proposer PubKey error: %w", err)
@@ -22,6 +22,6 @@ func (p Proposer) PubKey() (bytes []byte, typ, addr string, err error) {
 	return pubKey.Bytes(), pubKey.Type(), pubKey.Address().String(), nil
 }
 
-func (p Proposer) Sign(b []byte) ([]byte, error) {
+func (p *Proposer) Sign(b []byte) ([]byte, error) {
 	return p.v.SignBytes(b)
 }
