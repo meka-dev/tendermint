@@ -107,5 +107,5 @@ func (sc *RetrySignerClient) SignBytes(p []byte) (signed []byte, err error) {
 		}
 		time.Sleep(sc.timeout)
 	}
-	return nil, fmt.Errorf("exhausted all attempts to sign proposal: %w", err)
+	return nil, fmt.Errorf("exhausted all attempts to sign bytes: %w", err)
 }
