@@ -133,12 +133,11 @@ func (blockExec *BlockExecutor) build(
 		return nil, fmt.Errorf("no builder configured")
 	}
 
-	mempoolTxs := blockExec.mempool.ReapMaxTxs(-1)
 	req := &mekapbs.BuildBlockRequest{
 		ProposerAddress: string(proposerAddr),
 		ChainID:         chainID,
 		Height:          height,
-		Txs:             mekatekTxsToBytes(mempoolTxs),
+		Txs:             mekatekFromTxsToBytes(blockExec.mempool.ReapMaxTxs(-1)),
 		MaxBytes:        maxDataBytes,
 		MaxGas:          maxGas,
 	}
@@ -148,10 +147,10 @@ func (blockExec *BlockExecutor) build(
 		return nil, fmt.Errorf("build block failed: %w", err)
 	}
 
-	return mekatekBytesToTxs(resp.Txs), nil
+	return mekatekFromBytesToTxs(resp.Txs), nil
 }
 
-func mekatekTxsToBytes(txs types.Txs) [][]byte {
+func mekatekFromTxsToBytes(txs types.Txs) [][]byte {
 	res := make([][]byte, len(txs))
 	for i := range txs {
 		res[i] = txs[i]
@@ -159,7 +158,7 @@ func mekatekTxsToBytes(txs types.Txs) [][]byte {
 	return res
 }
 
-func mekatekBytesToTxs(ps [][]byte) types.Txs {
+func mekatekFromBytesToTxs(ps [][]byte) types.Txs {
 	res := make(types.Txs, len(ps))
 	for i := range ps {
 		res[i] = ps[i]
