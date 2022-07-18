@@ -811,8 +811,8 @@ func NewNode(config *cfg.Config,
 
 	{
 		var (
-			apiURL      = mekapbs.GetURIFromEnv("MEKATEK_BLOCK_BUILDER_API_URL", mekapbs.DefaultBlockBuilderAPIRURL)
-			apiTimeout  = mekapbs.GetDurationFromEnv("MEKATEK_BLOCK_BUILDER_TIMEOUT", mekapbs.DefaultBlockBuilderTimeout)
+			apiURL      = mekapbs.GetURIFromEnv("MEKATEK_BLOCK_BUILDER_API_URL")
+			apiTimeout  = mekapbs.GetDurationFromEnv("MEKATEK_BLOCK_BUILDER_TIMEOUT")
 			paymentAddr = os.Getenv("MEKATEK_BLOCK_BUILDER_PAYMENT_ADDRESS") // TODO: default to validator pubkey addr?
 			proposer    = mekatek.NewProposer(privValidator)
 		)
