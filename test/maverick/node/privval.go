@@ -264,8 +264,8 @@ func (pv *FilePV) SignProposal(chainID string, proposal *tmproto.Proposal) error
 	return nil
 }
 
-func (pv *FilePV) SignBytes([]byte) ([]byte, error) {
-	return nil, fmt.Errorf("not implemented")
+func (pv *FilePV) SignBytes(p []byte) ([]byte, error) {
+	return pv.Key.PrivKey.Sign(p)
 }
 
 // Save persists the FilePV to disk.
