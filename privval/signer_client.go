@@ -133,5 +133,20 @@ func (sc *SignerClient) SignProposal(chainID string, proposal *tmproto.Proposal)
 }
 
 func (sc *SignerClient) SignBytes(p []byte) ([]byte, error) {
-	return nil, fmt.Errorf("SignerClient does not implement SignBytes")
+	response, err := sc.endpoint.SendRequest(mustWrapMsg(
+		&privvalproto.SignBytesRequest{Bytes: p, ChainId: sc.chainID},
+	))
+	if err != nil {
+		return nil, err
+	}
+
+	resp := response.GetSignedBytesResponse()
+	if resp == nil {
+		return nil, ErrUnexpectedResponse
+	}
+	if resp.Error != nil {
+		return nil, &RemoteSignerError{Code: int(resp.Error.Code), Description: resp.Error.Description}
+	}
+
+	return resp.Bytes, nil
 }

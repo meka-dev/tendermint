@@ -437,3 +437,29 @@ func TestSignerUnexpectedResponse(t *testing.T) {
 		assert.EqualError(t, e, "empty response")
 	}
 }
+
+func TestSignerBytes(t *testing.T) {
+	for _, tc := range getSignerTestCases(t) {
+		tc := tc
+		t.Cleanup(func() {
+			if err := tc.signerServer.Stop(); err != nil {
+				t.Error(err)
+			}
+		})
+		t.Cleanup(func() {
+			if err := tc.signerClient.Close(); err != nil {
+				t.Error(err)
+			}
+		})
+
+		buf := []byte(`The answer is 42!`)
+
+		want, err := tc.mockPV.SignBytes(buf)
+		require.NoError(t, err)
+
+		have, err := tc.signerClient.SignBytes(buf)
+		require.NoError(t, err)
+
+		assert.Equal(t, want, have)
+	}
+}

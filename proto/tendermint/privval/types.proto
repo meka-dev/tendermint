@@ -62,6 +62,18 @@ message PingRequest {}
 // PingResponse is a response to confirm that the connection is alive.
 message PingResponse {}
 
+// SignBytesRequest is a request to sign arbitrary bytes
+message SignBytesRequest {
+  bytes  bytes    = 1;
+  string chain_id = 2;
+}
+
+// SignedBytesResponse is response containing a signed bytes slice or an error
+message SignedBytesResponse {
+  bytes             bytes = 1;
+  RemoteSignerError error = 2;
+}
+
 message Message {
   oneof sum {
     PubKeyRequest          pub_key_request          = 1;
@@ -72,5 +84,7 @@ message Message {
     SignedProposalResponse signed_proposal_response = 6;
     PingRequest            ping_request             = 7;
     PingResponse           ping_response            = 8;
+    SignBytesRequest       sign_bytes_request       = 9;
+    SignedBytesResponse    signed_bytes_response    = 10;
   }
 }

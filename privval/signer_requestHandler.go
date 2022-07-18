@@ -86,6 +86,25 @@ func DefaultValidationRequestHandler(
 	case *privvalproto.Message_PingRequest:
 		err, res = nil, mustWrapMsg(&privvalproto.PingResponse{})
 
+	case *privvalproto.Message_SignBytesRequest:
+		if r.SignBytesRequest.ChainId != chainID {
+			res = mustWrapMsg(&privvalproto.SignedBytesResponse{
+				Error: &privvalproto.RemoteSignerError{
+					Code:        0,
+					Description: "unable to sign bytes",
+				},
+			})
+			return res, fmt.Errorf("want chainID: %s, got chainID: %s", r.SignBytesRequest.GetChainId(), chainID)
+		}
+
+		signed, err := privVal.SignBytes(r.SignBytesRequest.Bytes)
+		if err != nil {
+			res = mustWrapMsg(&privvalproto.SignedBytesResponse{
+				Error: &privvalproto.RemoteSignerError{Description: err.Error()}})
+		} else {
+			res = mustWrapMsg(&privvalproto.SignedBytesResponse{Bytes: signed})
+		}
+
 	default:
 		err = fmt.Errorf("unknown msg: %v", r)
 	}

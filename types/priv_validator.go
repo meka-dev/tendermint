@@ -104,7 +104,7 @@ func (pv MockPV) SignProposal(chainID string, proposal *tmproto.Proposal) error 
 }
 
 func (pv MockPV) SignBytes(p []byte) ([]byte, error) {
-	return nil, fmt.Errorf("not implemented")
+	return pv.PrivKey.Sign(p)
 }
 
 func (pv MockPV) ExtractIntoValidator(votingPower int64) *Validator {
