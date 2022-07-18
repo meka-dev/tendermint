@@ -138,6 +138,7 @@ func (blockExec *BlockExecutor) build(
 		ProposerAddress: string(proposerAddr),
 		ChainID:         chainID,
 		Height:          height,
+		Txs:             mekatekTxsToBytes(mempoolTxs),
 		MaxBytes:        maxDataBytes,
 		MaxGas:          maxGas,
 	}
@@ -152,12 +153,23 @@ func (blockExec *BlockExecutor) build(
 		return nil, fmt.Errorf("build block failed: %w", err)
 	}
 
-	builderTxs := make(types.Txs, len(resp.Txs))
-	for i := range resp.Txs {
-		builderTxs[i] = resp.Txs[i]
-	}
+	return mekatekBytesToTxs(resp.Txs), nil
+}
 
-	return builderTxs, nil
+func mekatekTxsToBytes(txs types.Txs) [][]byte {
+	res := make([][]byte, len(txs))
+	for i := range txs {
+		res[i] = txs[i]
+	}
+	return res
+}
+
+func mekatekBytesToTxs(ps [][]byte) types.Txs {
+	res := make(types.Txs, len(ps))
+	for i := range ps {
+		res[i] = ps[i]
+	}
+	return res
 }
 
 // ValidateBlock validates the given block against the given state.
