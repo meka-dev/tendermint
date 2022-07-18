@@ -25,7 +25,13 @@ type BlockBuilder interface {
 	BuildBlock(context.Context, *BuildBlockRequest) (*BuildBlockResponse, error)
 }
 
-func NewBuilder(chainID string, privValidator types.PrivValidator, apiURL *url.URL, apiTimeout time.Duration, paymentAddr string) (BlockBuilder, error) {
+func NewBuilder(
+	chainID string,
+	privValidator types.PrivValidator,
+	apiURL *url.URL,
+	apiTimeout time.Duration,
+	paymentAddr string,
+) (BlockBuilder, error) {
 	pubKey, err := privValidator.GetPubKey()
 	if err != nil {
 		return nil, fmt.Errorf("get public key from validator: %w", err)
