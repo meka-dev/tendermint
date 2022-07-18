@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/tendermint/tendermint/mekatek"
 	"net"
 	"net/http"
 	"os"
@@ -14,6 +15,9 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/rs/cors"
+
+	mekapbs "github.com/meka-dev/pbs"
+
 	dbm "github.com/tendermint/tm-db"
 
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -30,7 +34,6 @@ import (
 	tmpubsub "github.com/tendermint/tendermint/libs/pubsub"
 	"github.com/tendermint/tendermint/libs/service"
 	"github.com/tendermint/tendermint/light"
-	"github.com/tendermint/tendermint/mekatek"
 	mempl "github.com/tendermint/tendermint/mempool"
 	mempoolv0 "github.com/tendermint/tendermint/mempool/v0"
 	mempoolv1 "github.com/tendermint/tendermint/mempool/v1"
@@ -808,12 +811,13 @@ func NewNode(config *cfg.Config,
 
 	{
 		var (
-			apiURL      = mekatek.GetURIFromEnv("MEKATEK_BLOCK_BUILDER_API_URL", mekatek.DefaultBlockBuilderAPIRURL)
-			apiTimeout  = mekatek.GetDurationFromEnv("MEKATEK_BLOCK_BUILDER_TIMEOUT", mekatek.DefaultBlockBuilderTimeout)
+			apiURL      = mekapbs.GetURIFromEnv("MEKATEK_BLOCK_BUILDER_API_URL", mekapbs.DefaultBlockBuilderAPIRURL)
+			apiTimeout  = mekapbs.GetDurationFromEnv("MEKATEK_BLOCK_BUILDER_TIMEOUT", mekapbs.DefaultBlockBuilderTimeout)
 			paymentAddr = os.Getenv("MEKATEK_BLOCK_BUILDER_PAYMENT_ADDRESS") // TODO: default to validator pubkey addr?
+			proposer    = mekatek.NewProposer(privValidator)
 		)
 
-		bb, err := mekatek.NewBuilder(state.ChainID, privValidator, apiURL, apiTimeout, paymentAddr)
+		bb, err := mekapbs.NewBuilder(state.ChainID, apiURL, apiTimeout, paymentAddr, proposer)
 		switch {
 		case err == nil:
 			beopts = append(beopts, sm.BlockExecutorWithBuilder(bb))
