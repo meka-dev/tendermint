@@ -23,5 +23,10 @@ func (p *Proposer) PubKey() (bytes []byte, typ, addr string, err error) {
 }
 
 func (p *Proposer) Sign(b []byte) ([]byte, error) {
-	return p.v.SignBytes(b)
+	signed, err := p.v.SignBytes(b)
+	if err != nil {
+		return nil, fmt.Errorf("mekatek.Proposer Sign error: %w", err)
+	}
+
+	return signed, nil
 }
