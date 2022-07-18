@@ -94,3 +94,18 @@ func (sc *RetrySignerClient) SignProposal(chainID string, proposal *tmproto.Prop
 	}
 	return fmt.Errorf("exhausted all attempts to sign proposal: %w", err)
 }
+
+func (sc *RetrySignerClient) SignBytes(p []byte) (signed []byte, err error) {
+	for i := 0; i < sc.retries || sc.retries == 0; i++ {
+		signed, err = sc.next.SignBytes(p)
+		if err == nil {
+			return signed, nil
+		}
+		// If remote signer errors, we don't retry.
+		if _, ok := err.(*RemoteSignerError); ok {
+			return nil, err
+		}
+		time.Sleep(sc.timeout)
+	}
+	return nil, fmt.Errorf("exhausted all attempts to sign bytes: %w", err)
+}

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -709,7 +710,8 @@ func NewNode(config *cfg.Config,
 	dbProvider DBProvider,
 	metricsProvider MetricsProvider,
 	logger log.Logger,
-	options ...Option) (*Node, error) {
+	options ...Option,
+) (*Node, error) {
 
 	blockStore, stateDB, err := initDBs(config, dbProvider)
 	if err != nil {
@@ -800,9 +802,24 @@ func NewNode(config *cfg.Config,
 		return nil, err
 	}
 
-	blockBuilder, err := mekatek.BuilderFromEnv(context.Background(), pubKey, state.ChainID)
-	if err != nil {
-		logger.Error("Failed to create Mekatek block builder", "err", err)
+	beopts := []sm.BlockExecutorOption{
+		sm.BlockExecutorWithMetrics(smMetrics),
+	}
+
+	{
+		var (
+			apiURL      = mekatek.GetURIFromEnv("MEKATEK_BLOCK_BUILDER_API_URL", mekatek.DefaultBlockBuilderAPIRURL)
+			apiTimeout  = mekatek.GetDurationFromEnv("MEKATEK_BLOCK_BUILDER_TIMEOUT", mekatek.DefaultBlockBuilderTimeout)
+			paymentAddr = os.Getenv("MEKATEK_BLOCK_BUILDER_PAYMENT_ADDRESS") // TODO: default to validator pubkey addr?
+		)
+
+		bb, err := mekatek.NewBuilder(state.ChainID, privValidator, apiURL, apiTimeout, paymentAddr)
+		switch {
+		case err == nil:
+			beopts = append(beopts, sm.BlockExecutorWithBuilder(bb))
+		case err != nil:
+			logger.Error("create Mekatek block builder failed", "err", err)
+		}
 	}
 
 	// make block executor for consensus and blockchain reactors to execute blocks
@@ -812,8 +829,7 @@ func NewNode(config *cfg.Config,
 		proxyApp.Consensus(),
 		mempool,
 		evidencePool,
-		sm.BlockExecutorWithMetrics(smMetrics),
-		sm.BlockExecutorWithBuilder(blockBuilder),
+		beopts...,
 	)
 
 	// Make BlockchainReactor. Don't start fast sync if we're doing a state sync first.
