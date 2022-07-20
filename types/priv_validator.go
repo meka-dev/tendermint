@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/meka-dev/mekatek"
+
 	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/crypto/ed25519"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
@@ -18,7 +20,7 @@ type PrivValidator interface {
 	SignVote(chainID string, vote *tmproto.Vote) error
 	SignProposal(chainID string, proposal *tmproto.Proposal) error
 
-	SignBytes(p []byte) ([]byte, error)
+	SignMekatekBuildBlockRequest(*mekatek.BuildBlockRequest) error
 }
 
 type PrivValidatorsByAddress []PrivValidator
@@ -103,8 +105,22 @@ func (pv MockPV) SignProposal(chainID string, proposal *tmproto.Proposal) error 
 	return nil
 }
 
-func (pv MockPV) SignBytes(p []byte) ([]byte, error) {
-	return pv.PrivKey.Sign(p)
+func (pv MockPV) SignMekatekBuildBlockRequest(req *mekatek.BuildBlockRequest) error {
+	signature, err := pv.PrivKey.Sign(mekatek.BuildBlockRequestSignatureBytes(
+		req.ProposerAddress,
+		req.ChainID,
+		req.Height,
+		req.MaxBytes,
+		req.MaxGas,
+		req.Txs,
+	))
+
+	if err != nil {
+		return err
+	}
+
+	req.Signature = signature
+	return nil
 }
 
 func (pv MockPV) ExtractIntoValidator(votingPower int64) *Validator {

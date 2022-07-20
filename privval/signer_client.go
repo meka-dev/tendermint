@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/meka-dev/mekatek"
+
 	"github.com/tendermint/tendermint/crypto"
 	cryptoenc "github.com/tendermint/tendermint/crypto/encoding"
 	privvalproto "github.com/tendermint/tendermint/proto/tendermint/privval"
@@ -132,21 +134,34 @@ func (sc *SignerClient) SignProposal(chainID string, proposal *tmproto.Proposal)
 	return nil
 }
 
-func (sc *SignerClient) SignBytes(p []byte) ([]byte, error) {
+func (sc *SignerClient) SignMekatekBuildBlockRequest(req *mekatek.BuildBlockRequest) error {
 	response, err := sc.endpoint.SendRequest(mustWrapMsg(
-		&privvalproto.SignBytesRequest{Bytes: p, ChainId: sc.chainID},
+		&privvalproto.SignMekatekBuildBlockRequest{
+			ProposerAddr: req.ProposerAddress,
+			ChainID:      req.ChainID,
+			Height:       req.Height,
+			MaxBytes:     req.MaxBytes,
+			MaxGas:       req.MaxGas,
+			Txs:          req.Txs,
+		},
 	))
 	if err != nil {
-		return nil, err
+		return fmt.Errorf("remote block build request signing failed: %w", err)
 	}
 
-	resp := response.GetSignedBytesResponse()
+	resp := response.GetSignMekatekBuildBlockRequestResponse()
 	if resp == nil {
-		return nil, ErrUnexpectedResponse
-	}
-	if resp.Error != nil {
-		return nil, &RemoteSignerError{Code: int(resp.Error.Code), Description: resp.Error.Description}
+		return ErrUnexpectedResponse
 	}
 
-	return resp.Bytes, nil
+	if resp.Error != nil {
+		return &RemoteSignerError{Code: int(resp.Error.Code), Description: resp.Error.Description}
+	}
+
+	if len(resp.Signature) == 0 {
+		return fmt.Errorf("remote block build request empty signature")
+	}
+
+	req.Signature = resp.Signature
+	return nil
 }

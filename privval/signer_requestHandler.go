@@ -3,6 +3,8 @@ package privval
 import (
 	"fmt"
 
+	"github.com/meka-dev/mekatek"
+
 	"github.com/tendermint/tendermint/crypto"
 	cryptoenc "github.com/tendermint/tendermint/crypto/encoding"
 	cryptoproto "github.com/tendermint/tendermint/proto/tendermint/crypto"
@@ -86,23 +88,33 @@ func DefaultValidationRequestHandler(
 	case *privvalproto.Message_PingRequest:
 		err, res = nil, mustWrapMsg(&privvalproto.PingResponse{})
 
-	case *privvalproto.Message_SignBytesRequest:
-		if r.SignBytesRequest.ChainId != chainID {
-			res = mustWrapMsg(&privvalproto.SignedBytesResponse{
-				Error: &privvalproto.RemoteSignerError{
-					Code:        0,
-					Description: "unable to sign bytes",
-				},
+	case *privvalproto.Message_SignMekatekBuildBlockRequest:
+		sr := r.SignMekatekBuildBlockRequest
+		if sr.ChainID != chainID {
+			err := fmt.Errorf("unable to sign build block request, chainID %s, want %s", sr.ChainID, chainID)
+			res = mustWrapMsg(&privvalproto.SignMekatekBuildBlockRequestResponse{
+				Error: &privvalproto.RemoteSignerError{Description: err.Error()},
 			})
-			return res, fmt.Errorf("want chainID: %s, got chainID: %s", r.SignBytesRequest.GetChainId(), chainID)
+			return res, err
 		}
 
-		signed, err := privVal.SignBytes(r.SignBytesRequest.Bytes)
+		msr := &mekatek.BuildBlockRequest{
+			ProposerAddress: sr.ProposerAddr,
+			ChainID:         sr.ChainID,
+			Height:          sr.Height,
+			MaxBytes:        sr.MaxBytes,
+			MaxGas:          sr.MaxGas,
+			Txs:             sr.Txs,
+		}
+
+		err := privVal.SignMekatekBuildBlockRequest(msr)
 		if err != nil {
-			res = mustWrapMsg(&privvalproto.SignedBytesResponse{
+			res = mustWrapMsg(&privvalproto.SignMekatekBuildBlockRequestResponse{
 				Error: &privvalproto.RemoteSignerError{Description: err.Error()}})
 		} else {
-			res = mustWrapMsg(&privvalproto.SignedBytesResponse{Bytes: signed})
+			res = mustWrapMsg(&privvalproto.SignMekatekBuildBlockRequestResponse{
+				Signature: msr.Signature,
+			})
 		}
 
 	default:

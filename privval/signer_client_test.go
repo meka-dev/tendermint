@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/meka-dev/mekatek"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -438,7 +439,7 @@ func TestSignerUnexpectedResponse(t *testing.T) {
 	}
 }
 
-func TestSignerBytes(t *testing.T) {
+func TestSignMekatekBuildBlockRequest(t *testing.T) {
 	for _, tc := range getSignerTestCases(t) {
 		tc := tc
 		t.Cleanup(func() {
@@ -452,12 +453,24 @@ func TestSignerBytes(t *testing.T) {
 			}
 		})
 
-		buf := []byte(`The answer is 42!`)
+		want := mekatek.BuildBlockRequest{
+			ProposerAddress: "foobar",
+			ChainID:         tc.chainID,
+			Height:          1234,
+			MaxBytes:        4321,
+			MaxGas:          9000,
+			Txs: [][]byte{
+				[]byte(`send the moneyz`),
+				[]byte(`to the good place`),
+			},
+		}
 
-		want, err := tc.mockPV.SignBytes(buf)
+		have := want
+
+		err := tc.mockPV.SignMekatekBuildBlockRequest(&want)
 		require.NoError(t, err)
 
-		have, err := tc.signerClient.SignBytes(buf)
+		err = tc.signerClient.SignMekatekBuildBlockRequest(&have)
 		require.NoError(t, err)
 
 		assert.Equal(t, want, have)
