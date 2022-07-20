@@ -961,19 +961,28 @@ type mekatekProposer struct{ types.PrivValidator }
 
 var _ mekatek.Proposer = (*mekatekProposer)(nil)
 
-func (p *mekatekProposer) PubKey() (bytes []byte, typ, addr string, err error) {
+func (p *mekatekProposer) Address() (string, error) {
 	pubKey, err := p.PrivValidator.GetPubKey()
 	if err != nil {
-		return nil, "", "", fmt.Errorf("mekatek.Proposer PubKey error: %w", err)
+		return "", fmt.Errorf("mekatek.Proposer Address error: %w", err)
 	}
 
-	return pubKey.Bytes(), pubKey.Type(), pubKey.Address().String(), nil
+	return pubKey.Address().String(), nil
 }
 
 func (p *mekatekProposer) SignBuildBlockRequest(r *mekatek.BuildBlockRequest) error {
 	err := p.PrivValidator.SignMekatekBuildBlockRequest(r)
 	if err != nil {
-		return fmt.Errorf("mekatek.Proposer Sign error: %w", err)
+		return fmt.Errorf("mekatek.Proposer SignMekatekBuildBlockRequest error: %w", err)
+	}
+
+	return nil
+}
+
+func (p *mekatekProposer) SignRegisterChallenge(c *mekatek.RegisterChallenge) error {
+	err := p.PrivValidator.SignMekatekRegisterChallenge(c)
+	if err != nil {
+		return fmt.Errorf("mekatek.Proposer SignRegisterChallenge error: %w", err)
 	}
 
 	return nil

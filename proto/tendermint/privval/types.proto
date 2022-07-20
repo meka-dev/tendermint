@@ -78,6 +78,18 @@ message SignMekatekBuildBlockRequestResponse {
   RemoteSignerError error     = 2;
 }
 
+// SignMekatekRegisterChallenge is a request to sign a MektatekRegisterChallenge
+message SignMekatekRegisterChallenge {
+  bytes  challenge = 1;
+  string chain_id  = 2 [(gogoproto.customname) = "ChainID"];
+}
+
+// SignMekatekRegisterChallengeResponse is response containing the signature of a SignMekatekRegisterChallenge or an error
+message SignMekatekRegisterChallengeResponse {
+  bytes             signature = 1;
+  RemoteSignerError error     = 2;
+}
+
 message Message {
   oneof sum {
     PubKeyRequest                   pub_key_request                     = 1;
@@ -88,7 +100,10 @@ message Message {
     SignedProposalResponse          signed_proposal_response            = 6;
     PingRequest                     ping_request                        = 7;
     PingResponse                    ping_response                       = 8;
-    SignMekatekBuildBlockRequest    sign_mekatek_build_block_request    = 9;
-    SignMekatekBuildBlockRequestResponse   sign_mekatek_build_block_request_response   = 10;
+
+    SignMekatekBuildBlockRequest          sign_mekatek_build_block_request          = 9;
+    SignMekatekBuildBlockRequestResponse  sign_mekatek_build_block_request_response = 10;
+    SignMekatekRegisterChallenge          sign_mekatek_register_challenge_request   = 11;
+    SignMekatekRegisterChallengeResponse  sign_mekatek_register_challenge_response  = 12;
   }
 }

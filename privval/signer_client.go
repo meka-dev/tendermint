@@ -165,3 +165,28 @@ func (sc *SignerClient) SignMekatekBuildBlockRequest(req *mekatek.BuildBlockRequ
 	req.Signature = resp.Signature
 	return nil
 }
+
+func (sc *SignerClient) SignMekatekRegisterChallenge(c *mekatek.RegisterChallenge) error {
+	response, err := sc.endpoint.SendRequest(mustWrapMsg(
+		&privvalproto.SignMekatekRegisterChallenge{Challenge: c.Bytes, ChainID: sc.chainID},
+	))
+	if err != nil {
+		return fmt.Errorf("remote register challenge signing failed: %w", err)
+	}
+
+	resp := response.GetSignMekatekRegisterChallengeResponse()
+	if resp == nil {
+		return ErrUnexpectedResponse
+	}
+
+	if resp.Error != nil {
+		return &RemoteSignerError{Code: int(resp.Error.Code), Description: resp.Error.Description}
+	}
+
+	if len(resp.Signature) == 0 {
+		return fmt.Errorf("remote register challenge empty signature")
+	}
+
+	c.Signature = resp.Signature
+	return nil
+}

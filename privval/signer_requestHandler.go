@@ -117,6 +117,27 @@ func DefaultValidationRequestHandler(
 			})
 		}
 
+	case *privvalproto.Message_SignMekatekRegisterChallengeRequest:
+		sr := r.SignMekatekRegisterChallengeRequest
+		if sr.ChainID != chainID {
+			err := fmt.Errorf("unable to sign register challenge, chainID %s, want %s", sr.ChainID, chainID)
+			res = mustWrapMsg(&privvalproto.SignMekatekRegisterChallengeResponse{
+				Error: &privvalproto.RemoteSignerError{Description: err.Error()},
+			})
+			return res, err
+		}
+
+		c := &mekatek.RegisterChallenge{Bytes: sr.Challenge}
+
+		if err := privVal.SignMekatekRegisterChallenge(c); err != nil {
+			res = mustWrapMsg(&privvalproto.SignMekatekRegisterChallengeResponse{
+				Error: &privvalproto.RemoteSignerError{Description: err.Error()}})
+		} else {
+			res = mustWrapMsg(&privvalproto.SignMekatekRegisterChallengeResponse{
+				Signature: c.Signature,
+			})
+		}
+
 	default:
 		err = fmt.Errorf("unknown msg: %v", r)
 	}
