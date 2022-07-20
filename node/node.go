@@ -15,7 +15,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/rs/cors"
 
-	mekapbs "github.com/meka-dev/pbs"
+	"github.com/meka-dev/mekatek"
 
 	dbm "github.com/tendermint/tm-db"
 
@@ -810,13 +810,13 @@ func NewNode(config *cfg.Config,
 
 	{
 		var (
-			apiURL      = mekapbs.GetURIFromEnv("MEKATEK_BLOCK_BUILDER_API_URL")
-			apiTimeout  = mekapbs.GetDurationFromEnv("MEKATEK_BLOCK_BUILDER_TIMEOUT")
+			apiURL      = mekatek.GetURIFromEnv("MEKATEK_BLOCK_BUILDER_API_URL")
+			apiTimeout  = mekatek.GetDurationFromEnv("MEKATEK_BLOCK_BUILDER_TIMEOUT")
 			paymentAddr = os.Getenv("MEKATEK_BLOCK_BUILDER_PAYMENT_ADDRESS") // TODO: default to validator pubkey addr?
 			proposer    = &mekatekProposer{PrivValidator: privValidator}
 		)
 
-		bb, err := mekapbs.NewBuilder(state.ChainID, apiURL, apiTimeout, paymentAddr, proposer)
+		bb, err := mekatek.NewBuilder(state.ChainID, apiURL, apiTimeout, paymentAddr, proposer)
 		switch {
 		case err == nil:
 			beopts = append(beopts, sm.BlockExecutorWithBuilder(bb))
@@ -959,7 +959,7 @@ func NewNode(config *cfg.Config,
 
 type mekatekProposer struct{ types.PrivValidator }
 
-var _ mekapbs.Proposer = (*mekatekProposer)(nil)
+var _ mekatek.Proposer = (*mekatekProposer)(nil)
 
 func (p *mekatekProposer) PubKey() (bytes []byte, typ, addr string, err error) {
 	pubKey, err := p.PrivValidator.GetPubKey()
@@ -970,13 +970,13 @@ func (p *mekatekProposer) PubKey() (bytes []byte, typ, addr string, err error) {
 	return pubKey.Bytes(), pubKey.Type(), pubKey.Address().String(), nil
 }
 
-func (p *mekatekProposer) Sign(b []byte) ([]byte, error) {
-	signed, err := p.PrivValidator.SignBytes(b)
+func (p *mekatekProposer) SignBuildBlockRequest(r *mekatek.BuildBlockRequest) error {
+	err := p.PrivValidator.SignMekatekBuildBlockRequest(r)
 	if err != nil {
-		return nil, fmt.Errorf("mekatek.Proposer Sign error: %w", err)
+		return fmt.Errorf("mekatek.Proposer Sign error: %w", err)
 	}
 
-	return signed, nil
+	return nil
 }
 
 // OnStart starts the Node. It implements service.Service.

@@ -32,10 +32,10 @@ func mustWrapMsg(pb proto.Message) privvalproto.Message {
 		msg.Sum = &privvalproto.Message_PingRequest{PingRequest: pb}
 	case *privvalproto.PingResponse:
 		msg.Sum = &privvalproto.Message_PingResponse{PingResponse: pb}
-	case *privvalproto.SignBytesRequest:
-		msg.Sum = &privvalproto.Message_SignBytesRequest{SignBytesRequest: pb}
-	case *privvalproto.SignedBytesResponse:
-		msg.Sum = &privvalproto.Message_SignedBytesResponse{SignedBytesResponse: pb}
+	case *privvalproto.SignMekatekBuildBlockRequest:
+		msg.Sum = &privvalproto.Message_SignMekatekBuildBlockRequest{SignMekatekBuildBlockRequest: pb}
+	case *privvalproto.SignMekatekBuildBlockRequestResponse:
+		msg.Sum = &privvalproto.Message_SignMekatekBuildBlockRequestResponse{SignMekatekBuildBlockRequestResponse: pb}
 	default:
 		panic(fmt.Errorf("unknown message type %T", pb))
 	}

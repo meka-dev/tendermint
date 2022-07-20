@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/meka-dev/mekatek"
+
 	"github.com/tendermint/tendermint/crypto"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	"github.com/tendermint/tendermint/types"
@@ -95,17 +97,17 @@ func (sc *RetrySignerClient) SignProposal(chainID string, proposal *tmproto.Prop
 	return fmt.Errorf("exhausted all attempts to sign proposal: %w", err)
 }
 
-func (sc *RetrySignerClient) SignBytes(p []byte) (signed []byte, err error) {
+func (sc *RetrySignerClient) SignMekatekBuildBlockRequest(req *mekatek.BuildBlockRequest) (err error) {
 	for i := 0; i < sc.retries || sc.retries == 0; i++ {
-		signed, err = sc.next.SignBytes(p)
+		err = sc.next.SignMekatekBuildBlockRequest(req)
 		if err == nil {
-			return signed, nil
+			return nil
 		}
 		// If remote signer errors, we don't retry.
 		if _, ok := err.(*RemoteSignerError); ok {
-			return nil, err
+			return err
 		}
 		time.Sleep(sc.timeout)
 	}
-	return nil, fmt.Errorf("exhausted all attempts to sign bytes: %w", err)
+	return fmt.Errorf("exhausted all attempts to sign bytes: %w", err)
 }

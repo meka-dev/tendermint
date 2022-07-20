@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"io/ioutil"
 
+	"github.com/meka-dev/mekatek"
+
 	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/crypto/ed25519"
 	tmbytes "github.com/tendermint/tendermint/libs/bytes"
@@ -264,8 +266,22 @@ func (pv *FilePV) SignProposal(chainID string, proposal *tmproto.Proposal) error
 	return nil
 }
 
-func (pv *FilePV) SignBytes(p []byte) ([]byte, error) {
-	return pv.Key.PrivKey.Sign(p)
+func (pv *FilePV) SignMekatekBuildBlockRequest(req *mekatek.BuildBlockRequest) error {
+	signature, err := pv.Key.PrivKey.Sign(mekatek.BuildBlockRequestSignatureBytes(
+		req.ProposerAddress,
+		req.ChainID,
+		req.Height,
+		req.MaxBytes,
+		req.MaxGas,
+		req.Txs,
+	))
+
+	if err != nil {
+		return fmt.Errorf("failed to sign build block request: %w", err)
+	}
+
+	req.Signature = signature
+	return nil
 }
 
 // Save persists the FilePV to disk.

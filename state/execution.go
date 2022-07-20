@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	mekapbs "github.com/meka-dev/pbs"
+	"github.com/meka-dev/mekatek"
 
 	abci "github.com/tendermint/tendermint/abci/types"
 	cryptoenc "github.com/tendermint/tendermint/crypto/encoding"
@@ -44,7 +44,7 @@ type BlockExecutor struct {
 
 	metrics *Metrics
 
-	builder mekapbs.Builder
+	builder mekatek.Builder
 }
 
 type BlockExecutorOption func(executor *BlockExecutor)
@@ -55,7 +55,7 @@ func BlockExecutorWithMetrics(metrics *Metrics) BlockExecutorOption {
 	}
 }
 
-func BlockExecutorWithBuilder(b mekapbs.Builder) BlockExecutorOption {
+func BlockExecutorWithBuilder(b mekatek.Builder) BlockExecutorOption {
 	return func(blockExec *BlockExecutor) {
 		blockExec.builder = b
 	}
@@ -133,7 +133,7 @@ func (blockExec *BlockExecutor) build(
 		return nil, fmt.Errorf("no builder configured")
 	}
 
-	req := &mekapbs.BuildBlockRequest{
+	req := &mekatek.BuildBlockRequest{
 		ProposerAddress: string(proposerAddr),
 		ChainID:         chainID,
 		Height:          height,

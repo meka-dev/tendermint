@@ -498,24 +498,28 @@ func (m *PingResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_PingResponse proto.InternalMessageInfo
 
-// SignBytesRequest is a request to sign arbitrary bytes
-type SignBytesRequest struct {
-	Bytes   []byte `protobuf:"bytes,1,opt,name=bytes,proto3" json:"bytes,omitempty"`
-	ChainId string `protobuf:"bytes,2,opt,name=chain_id,json=chainId,proto3" json:"chain_id,omitempty"`
+// SignMekatekBuildBlockRequest is a request to sign a MektatekBuildBlockRequest
+type SignMekatekBuildBlockRequest struct {
+	ProposerAddr string   `protobuf:"bytes,1,opt,name=proposer_addr,json=proposerAddr,proto3" json:"proposer_addr,omitempty"`
+	ChainID      string   `protobuf:"bytes,2,opt,name=chain_id,json=chainId,proto3" json:"chain_id,omitempty"`
+	Height       int64    `protobuf:"varint,3,opt,name=height,proto3" json:"height,omitempty"`
+	MaxBytes     int64    `protobuf:"varint,4,opt,name=max_bytes,json=maxBytes,proto3" json:"max_bytes,omitempty"`
+	MaxGas       int64    `protobuf:"varint,5,opt,name=max_gas,json=maxGas,proto3" json:"max_gas,omitempty"`
+	Txs          [][]byte `protobuf:"bytes,6,rep,name=txs,proto3" json:"txs,omitempty"`
 }
 
-func (m *SignBytesRequest) Reset()         { *m = SignBytesRequest{} }
-func (m *SignBytesRequest) String() string { return proto.CompactTextString(m) }
-func (*SignBytesRequest) ProtoMessage()    {}
-func (*SignBytesRequest) Descriptor() ([]byte, []int) {
+func (m *SignMekatekBuildBlockRequest) Reset()         { *m = SignMekatekBuildBlockRequest{} }
+func (m *SignMekatekBuildBlockRequest) String() string { return proto.CompactTextString(m) }
+func (*SignMekatekBuildBlockRequest) ProtoMessage()    {}
+func (*SignMekatekBuildBlockRequest) Descriptor() ([]byte, []int) {
 	return fileDescriptor_cb4e437a5328cf9c, []int{9}
 }
-func (m *SignBytesRequest) XXX_Unmarshal(b []byte) error {
+func (m *SignMekatekBuildBlockRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *SignBytesRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *SignMekatekBuildBlockRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_SignBytesRequest.Marshal(b, m, deterministic)
+		return xxx_messageInfo_SignMekatekBuildBlockRequest.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -525,50 +529,78 @@ func (m *SignBytesRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, er
 		return b[:n], nil
 	}
 }
-func (m *SignBytesRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_SignBytesRequest.Merge(m, src)
+func (m *SignMekatekBuildBlockRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SignMekatekBuildBlockRequest.Merge(m, src)
 }
-func (m *SignBytesRequest) XXX_Size() int {
+func (m *SignMekatekBuildBlockRequest) XXX_Size() int {
 	return m.Size()
 }
-func (m *SignBytesRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_SignBytesRequest.DiscardUnknown(m)
+func (m *SignMekatekBuildBlockRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_SignMekatekBuildBlockRequest.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_SignBytesRequest proto.InternalMessageInfo
+var xxx_messageInfo_SignMekatekBuildBlockRequest proto.InternalMessageInfo
 
-func (m *SignBytesRequest) GetBytes() []byte {
+func (m *SignMekatekBuildBlockRequest) GetProposerAddr() string {
 	if m != nil {
-		return m.Bytes
-	}
-	return nil
-}
-
-func (m *SignBytesRequest) GetChainId() string {
-	if m != nil {
-		return m.ChainId
+		return m.ProposerAddr
 	}
 	return ""
 }
 
-// SignedBytesResponse is response containing a signed bytes slice or an error
-type SignedBytesResponse struct {
-	Bytes []byte             `protobuf:"bytes,1,opt,name=bytes,proto3" json:"bytes,omitempty"`
-	Error *RemoteSignerError `protobuf:"bytes,2,opt,name=error,proto3" json:"error,omitempty"`
+func (m *SignMekatekBuildBlockRequest) GetChainID() string {
+	if m != nil {
+		return m.ChainID
+	}
+	return ""
 }
 
-func (m *SignedBytesResponse) Reset()         { *m = SignedBytesResponse{} }
-func (m *SignedBytesResponse) String() string { return proto.CompactTextString(m) }
-func (*SignedBytesResponse) ProtoMessage()    {}
-func (*SignedBytesResponse) Descriptor() ([]byte, []int) {
+func (m *SignMekatekBuildBlockRequest) GetHeight() int64 {
+	if m != nil {
+		return m.Height
+	}
+	return 0
+}
+
+func (m *SignMekatekBuildBlockRequest) GetMaxBytes() int64 {
+	if m != nil {
+		return m.MaxBytes
+	}
+	return 0
+}
+
+func (m *SignMekatekBuildBlockRequest) GetMaxGas() int64 {
+	if m != nil {
+		return m.MaxGas
+	}
+	return 0
+}
+
+func (m *SignMekatekBuildBlockRequest) GetTxs() [][]byte {
+	if m != nil {
+		return m.Txs
+	}
+	return nil
+}
+
+// SignMekatekBuildBlockRequestResponse is response containing the signature of a SignMekatekBuildBlockRequest or an error
+type SignMekatekBuildBlockRequestResponse struct {
+	Signature []byte             `protobuf:"bytes,1,opt,name=signature,proto3" json:"signature,omitempty"`
+	Error     *RemoteSignerError `protobuf:"bytes,2,opt,name=error,proto3" json:"error,omitempty"`
+}
+
+func (m *SignMekatekBuildBlockRequestResponse) Reset()         { *m = SignMekatekBuildBlockRequestResponse{} }
+func (m *SignMekatekBuildBlockRequestResponse) String() string { return proto.CompactTextString(m) }
+func (*SignMekatekBuildBlockRequestResponse) ProtoMessage()    {}
+func (*SignMekatekBuildBlockRequestResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_cb4e437a5328cf9c, []int{10}
 }
-func (m *SignedBytesResponse) XXX_Unmarshal(b []byte) error {
+func (m *SignMekatekBuildBlockRequestResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *SignedBytesResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *SignMekatekBuildBlockRequestResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_SignedBytesResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_SignMekatekBuildBlockRequestResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -578,26 +610,26 @@ func (m *SignedBytesResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte,
 		return b[:n], nil
 	}
 }
-func (m *SignedBytesResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_SignedBytesResponse.Merge(m, src)
+func (m *SignMekatekBuildBlockRequestResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SignMekatekBuildBlockRequestResponse.Merge(m, src)
 }
-func (m *SignedBytesResponse) XXX_Size() int {
+func (m *SignMekatekBuildBlockRequestResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *SignedBytesResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_SignedBytesResponse.DiscardUnknown(m)
+func (m *SignMekatekBuildBlockRequestResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_SignMekatekBuildBlockRequestResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_SignedBytesResponse proto.InternalMessageInfo
+var xxx_messageInfo_SignMekatekBuildBlockRequestResponse proto.InternalMessageInfo
 
-func (m *SignedBytesResponse) GetBytes() []byte {
+func (m *SignMekatekBuildBlockRequestResponse) GetSignature() []byte {
 	if m != nil {
-		return m.Bytes
+		return m.Signature
 	}
 	return nil
 }
 
-func (m *SignedBytesResponse) GetError() *RemoteSignerError {
+func (m *SignMekatekBuildBlockRequestResponse) GetError() *RemoteSignerError {
 	if m != nil {
 		return m.Error
 	}
@@ -614,8 +646,8 @@ type Message struct {
 	//	*Message_SignedProposalResponse
 	//	*Message_PingRequest
 	//	*Message_PingResponse
-	//	*Message_SignBytesRequest
-	//	*Message_SignedBytesResponse
+	//	*Message_SignMekatekBuildBlockRequest
+	//	*Message_SignMekatekBuildBlockRequestResponse
 	Sum isMessage_Sum `protobuf_oneof:"sum"`
 }
 
@@ -682,23 +714,23 @@ type Message_PingRequest struct {
 type Message_PingResponse struct {
 	PingResponse *PingResponse `protobuf:"bytes,8,opt,name=ping_response,json=pingResponse,proto3,oneof" json:"ping_response,omitempty"`
 }
-type Message_SignBytesRequest struct {
-	SignBytesRequest *SignBytesRequest `protobuf:"bytes,9,opt,name=sign_bytes_request,json=signBytesRequest,proto3,oneof" json:"sign_bytes_request,omitempty"`
+type Message_SignMekatekBuildBlockRequest struct {
+	SignMekatekBuildBlockRequest *SignMekatekBuildBlockRequest `protobuf:"bytes,9,opt,name=sign_mekatek_build_block_request,json=signMekatekBuildBlockRequest,proto3,oneof" json:"sign_mekatek_build_block_request,omitempty"`
 }
-type Message_SignedBytesResponse struct {
-	SignedBytesResponse *SignedBytesResponse `protobuf:"bytes,10,opt,name=signed_bytes_response,json=signedBytesResponse,proto3,oneof" json:"signed_bytes_response,omitempty"`
+type Message_SignMekatekBuildBlockRequestResponse struct {
+	SignMekatekBuildBlockRequestResponse *SignMekatekBuildBlockRequestResponse `protobuf:"bytes,10,opt,name=sign_mekatek_build_block_request_response,json=signMekatekBuildBlockRequestResponse,proto3,oneof" json:"sign_mekatek_build_block_request_response,omitempty"`
 }
 
-func (*Message_PubKeyRequest) isMessage_Sum()          {}
-func (*Message_PubKeyResponse) isMessage_Sum()         {}
-func (*Message_SignVoteRequest) isMessage_Sum()        {}
-func (*Message_SignedVoteResponse) isMessage_Sum()     {}
-func (*Message_SignProposalRequest) isMessage_Sum()    {}
-func (*Message_SignedProposalResponse) isMessage_Sum() {}
-func (*Message_PingRequest) isMessage_Sum()            {}
-func (*Message_PingResponse) isMessage_Sum()           {}
-func (*Message_SignBytesRequest) isMessage_Sum()       {}
-func (*Message_SignedBytesResponse) isMessage_Sum()    {}
+func (*Message_PubKeyRequest) isMessage_Sum()                        {}
+func (*Message_PubKeyResponse) isMessage_Sum()                       {}
+func (*Message_SignVoteRequest) isMessage_Sum()                      {}
+func (*Message_SignedVoteResponse) isMessage_Sum()                   {}
+func (*Message_SignProposalRequest) isMessage_Sum()                  {}
+func (*Message_SignedProposalResponse) isMessage_Sum()               {}
+func (*Message_PingRequest) isMessage_Sum()                          {}
+func (*Message_PingResponse) isMessage_Sum()                         {}
+func (*Message_SignMekatekBuildBlockRequest) isMessage_Sum()         {}
+func (*Message_SignMekatekBuildBlockRequestResponse) isMessage_Sum() {}
 
 func (m *Message) GetSum() isMessage_Sum {
 	if m != nil {
@@ -763,16 +795,16 @@ func (m *Message) GetPingResponse() *PingResponse {
 	return nil
 }
 
-func (m *Message) GetSignBytesRequest() *SignBytesRequest {
-	if x, ok := m.GetSum().(*Message_SignBytesRequest); ok {
-		return x.SignBytesRequest
+func (m *Message) GetSignMekatekBuildBlockRequest() *SignMekatekBuildBlockRequest {
+	if x, ok := m.GetSum().(*Message_SignMekatekBuildBlockRequest); ok {
+		return x.SignMekatekBuildBlockRequest
 	}
 	return nil
 }
 
-func (m *Message) GetSignedBytesResponse() *SignedBytesResponse {
-	if x, ok := m.GetSum().(*Message_SignedBytesResponse); ok {
-		return x.SignedBytesResponse
+func (m *Message) GetSignMekatekBuildBlockRequestResponse() *SignMekatekBuildBlockRequestResponse {
+	if x, ok := m.GetSum().(*Message_SignMekatekBuildBlockRequestResponse); ok {
+		return x.SignMekatekBuildBlockRequestResponse
 	}
 	return nil
 }
@@ -788,8 +820,8 @@ func (*Message) XXX_OneofWrappers() []interface{} {
 		(*Message_SignedProposalResponse)(nil),
 		(*Message_PingRequest)(nil),
 		(*Message_PingResponse)(nil),
-		(*Message_SignBytesRequest)(nil),
-		(*Message_SignedBytesResponse)(nil),
+		(*Message_SignMekatekBuildBlockRequest)(nil),
+		(*Message_SignMekatekBuildBlockRequestResponse)(nil),
 	}
 }
 
@@ -804,67 +836,76 @@ func init() {
 	proto.RegisterType((*SignedProposalResponse)(nil), "tendermint.privval.SignedProposalResponse")
 	proto.RegisterType((*PingRequest)(nil), "tendermint.privval.PingRequest")
 	proto.RegisterType((*PingResponse)(nil), "tendermint.privval.PingResponse")
-	proto.RegisterType((*SignBytesRequest)(nil), "tendermint.privval.SignBytesRequest")
-	proto.RegisterType((*SignedBytesResponse)(nil), "tendermint.privval.SignedBytesResponse")
+	proto.RegisterType((*SignMekatekBuildBlockRequest)(nil), "tendermint.privval.SignMekatekBuildBlockRequest")
+	proto.RegisterType((*SignMekatekBuildBlockRequestResponse)(nil), "tendermint.privval.SignMekatekBuildBlockRequestResponse")
 	proto.RegisterType((*Message)(nil), "tendermint.privval.Message")
 }
 
 func init() { proto.RegisterFile("tendermint/privval/types.proto", fileDescriptor_cb4e437a5328cf9c) }
 
 var fileDescriptor_cb4e437a5328cf9c = []byte{
-	// 828 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xa4, 0x56, 0x4b, 0x4f, 0xf3, 0x46,
-	0x14, 0xb5, 0x21, 0x0f, 0xb8, 0x79, 0x10, 0x86, 0x94, 0x86, 0x88, 0x9a, 0x34, 0x7d, 0xa1, 0x2c,
-	0x92, 0x8a, 0x4a, 0x95, 0x2a, 0xba, 0x69, 0x82, 0x55, 0x47, 0x11, 0x4e, 0x3a, 0x09, 0x05, 0x21,
-	0x55, 0x56, 0x12, 0x4f, 0x8d, 0x05, 0xb1, 0x5d, 0x8f, 0x83, 0x94, 0x75, 0x77, 0x5d, 0x55, 0xea,
-	0x9f, 0xe8, 0x4f, 0x61, 0xc9, 0xb2, 0xab, 0xaa, 0x82, 0x45, 0xff, 0xc6, 0x27, 0x8f, 0x27, 0x8e,
-	0xf3, 0xd4, 0xf7, 0x89, 0x9d, 0xef, 0x63, 0xce, 0x3d, 0xe7, 0x8e, 0x8f, 0x34, 0x20, 0x79, 0xc4,
-	0xd2, 0x89, 0x3b, 0x32, 0x2d, 0xaf, 0xe6, 0xb8, 0xe6, 0xe3, 0x63, 0xff, 0xa1, 0xe6, 0x4d, 0x1c,
-	0x42, 0xab, 0x8e, 0x6b, 0x7b, 0x36, 0x42, 0xb3, 0x7a, 0x95, 0xd7, 0x8b, 0xc7, 0x91, 0x33, 0x43,
-	0x77, 0xe2, 0x78, 0x76, 0xed, 0x9e, 0x4c, 0xf8, 0x89, 0xb9, 0x2a, 0x43, 0x8a, 0xe2, 0x15, 0xf3,
-	0x86, 0x6d, 0xd8, 0xec, 0xb3, 0xe6, 0x7f, 0x05, 0xd9, 0x72, 0x13, 0xf6, 0x31, 0x19, 0xd9, 0x1e,
-	0xe9, 0x9a, 0x86, 0x45, 0x5c, 0xd9, 0x75, 0x6d, 0x17, 0x21, 0x88, 0x0d, 0x6d, 0x9d, 0x14, 0xc4,
-	0x92, 0x78, 0x1a, 0xc7, 0xec, 0x1b, 0x95, 0x20, 0xa5, 0x13, 0x3a, 0x74, 0x4d, 0xc7, 0x33, 0x6d,
-	0xab, 0xb0, 0x55, 0x12, 0x4f, 0x77, 0x71, 0x34, 0x55, 0xae, 0x40, 0xa6, 0x33, 0x1e, 0xb4, 0xc8,
-	0x04, 0x93, 0xdf, 0xc6, 0x84, 0x7a, 0xe8, 0x08, 0x76, 0x86, 0x77, 0x7d, 0xd3, 0xd2, 0x4c, 0x9d,
-	0x41, 0xed, 0xe2, 0x24, 0x8b, 0x9b, 0x7a, 0xf9, 0x0f, 0x11, 0xb2, 0xd3, 0x66, 0xea, 0xd8, 0x16,
-	0x25, 0xe8, 0x1c, 0x92, 0xce, 0x78, 0xa0, 0xdd, 0x93, 0x09, 0x6b, 0x4e, 0x9d, 0x1d, 0x57, 0x23,
-	0x1b, 0x08, 0xd4, 0x56, 0x3b, 0xe3, 0xc1, 0x83, 0x39, 0x6c, 0x91, 0x49, 0x3d, 0xf6, 0xf4, 0xef,
-	0x89, 0x80, 0x13, 0x0e, 0x03, 0x41, 0xe7, 0x10, 0x27, 0x3e, 0x75, 0xc6, 0x2b, 0x75, 0xf6, 0x45,
-	0x75, 0x79, 0x79, 0xd5, 0x25, 0x9d, 0x38, 0x38, 0x53, 0xbe, 0x81, 0x3d, 0x3f, 0xfb, 0xb3, 0xed,
-	0x91, 0x29, 0xf5, 0x0a, 0xc4, 0x1e, 0x6d, 0x8f, 0x70, 0x26, 0x87, 0x51, 0xb8, 0x60, 0xa7, 0xac,
-	0x99, 0xf5, 0xcc, 0xc9, 0xdc, 0x9a, 0x97, 0xf9, 0xbb, 0x08, 0x88, 0x0d, 0xd4, 0x03, 0x70, 0x2e,
-	0xf5, 0xeb, 0xf7, 0x41, 0xe7, 0x0a, 0x83, 0x19, 0x6f, 0xd2, 0x77, 0x07, 0x07, 0x7e, 0xb6, 0xe3,
-	0xda, 0x8e, 0x4d, 0xfb, 0x0f, 0x53, 0x8d, 0xdf, 0xc2, 0x8e, 0xc3, 0x53, 0x9c, 0x49, 0x71, 0x99,
-	0x49, 0x78, 0x28, 0xec, 0xdd, 0xa4, 0xf7, 0x2f, 0x11, 0x0e, 0x03, 0xbd, 0xb3, 0x61, 0x5c, 0xf3,
-	0xf7, 0x1f, 0x32, 0x8d, 0x6b, 0x9f, 0xcd, 0x7c, 0x93, 0xfe, 0x0c, 0xa4, 0x3a, 0xa6, 0x65, 0x70,
-	0xdd, 0xe5, 0x2c, 0xa4, 0x83, 0x30, 0x60, 0x56, 0x6e, 0x40, 0xce, 0x3f, 0x54, 0x9f, 0x78, 0x84,
-	0x4e, 0x77, 0x93, 0x87, 0xf8, 0xc0, 0x8f, 0x19, 0xd5, 0x34, 0x0e, 0x82, 0x4d, 0xca, 0xf9, 0x8e,
-	0x89, 0xce, 0x61, 0xb8, 0xea, 0xd5, 0x38, 0x6f, 0x52, 0xf3, 0x7f, 0x02, 0x92, 0x97, 0x84, 0xd2,
-	0xbe, 0x41, 0x50, 0x0b, 0xf6, 0xb8, 0x67, 0x34, 0x37, 0x60, 0xce, 0x77, 0xfb, 0xe9, 0x2a, 0xc8,
-	0x39, 0x77, 0x2a, 0x02, 0xce, 0x38, 0x73, 0x76, 0x55, 0x21, 0x37, 0x03, 0x0b, 0xf8, 0x73, 0x82,
-	0xe5, 0x4d, 0x68, 0x41, 0xa7, 0x22, 0xe0, 0xac, 0x33, 0x6f, 0xe8, 0x9f, 0x60, 0x9f, 0x9a, 0x86,
-	0xa5, 0xf9, 0x3f, 0x70, 0x48, 0x6f, 0x9b, 0x01, 0x7e, 0xb6, 0x0a, 0x70, 0xc1, 0x83, 0x8a, 0x80,
-	0xf7, 0xe8, 0x82, 0x2d, 0x6f, 0x21, 0x4f, 0xd9, 0x96, 0xa7, 0xa0, 0x9c, 0x66, 0x8c, 0xa1, 0x7e,
-	0xb9, 0x0e, 0x75, 0xde, 0x7e, 0x8a, 0x80, 0x11, 0x5d, 0x36, 0xe5, 0x2f, 0xf0, 0x11, 0xa3, 0x3b,
-	0xfd, 0xe7, 0x42, 0xca, 0x71, 0x06, 0xfe, 0xd5, 0x3a, 0xf0, 0x05, 0x5b, 0x29, 0x02, 0x3e, 0xa0,
-	0x2b, 0xdc, 0xf6, 0x2b, 0x14, 0x38, 0xf5, 0xc8, 0x00, 0x4e, 0x3f, 0xc1, 0x26, 0x54, 0xd6, 0xd3,
-	0x5f, 0x74, 0x93, 0x22, 0xe0, 0x43, 0xba, 0xda, 0x67, 0x17, 0x90, 0x76, 0x4c, 0xcb, 0x08, 0xd9,
-	0x27, 0x19, 0xf6, 0xc9, 0xca, 0x1b, 0x9c, 0x99, 0x42, 0x11, 0x70, 0xca, 0x99, 0x85, 0xe8, 0x47,
-	0xc8, 0x70, 0x14, 0x4e, 0x71, 0x87, 0xc1, 0x94, 0xd6, 0xc3, 0x84, 0xc4, 0xd2, 0x4e, 0x24, 0x46,
-	0x3d, 0x60, 0xbb, 0xd6, 0xd8, 0x8f, 0x1f, 0x92, 0xda, 0x65, 0x68, 0x9f, 0xaf, 0x13, 0x1c, 0xb5,
-	0xa2, 0x22, 0xe0, 0x1c, 0x5d, 0xb4, 0x27, 0xbf, 0x2b, 0xa2, 0x87, 0xb8, 0x9c, 0x26, 0x6c, 0xbe,
-	0xab, 0x05, 0x7b, 0x4e, 0xef, 0x6a, 0x21, 0x5d, 0x8f, 0xc3, 0x36, 0x1d, 0x8f, 0x2a, 0x7f, 0x8b,
-	0x90, 0x60, 0xd6, 0xa3, 0x08, 0x41, 0x56, 0xc6, 0xb8, 0x8d, 0xbb, 0xda, 0x95, 0xda, 0x52, 0xdb,
-	0xd7, 0x6a, 0x4e, 0x40, 0x12, 0x14, 0xc3, 0x9c, 0x7c, 0xd3, 0x91, 0x1b, 0x3d, 0xf9, 0x42, 0xc3,
-	0x72, 0xb7, 0xd3, 0x56, 0xbb, 0x72, 0x4e, 0x44, 0x05, 0xc8, 0xf3, 0xba, 0xda, 0xd6, 0x1a, 0x6d,
-	0x55, 0x95, 0x1b, 0xbd, 0x66, 0x5b, 0xcd, 0x6d, 0xa1, 0x4f, 0xe0, 0x88, 0x57, 0x66, 0x69, 0xad,
-	0xd7, 0xbc, 0x94, 0xdb, 0x57, 0xbd, 0xdc, 0x36, 0xfa, 0x18, 0x0e, 0x78, 0x19, 0xcb, 0x3f, 0x5c,
-	0x84, 0x85, 0x58, 0x04, 0xf1, 0x1a, 0x37, 0x7b, 0x72, 0x58, 0x89, 0xd7, 0xbb, 0x4f, 0x2f, 0x92,
-	0xf8, 0xfc, 0x22, 0x89, 0xff, 0xbd, 0x48, 0xe2, 0x9f, 0xaf, 0x92, 0xf0, 0xfc, 0x2a, 0x09, 0xff,
-	0xbc, 0x4a, 0xc2, 0xed, 0x77, 0x86, 0xe9, 0xdd, 0x8d, 0x07, 0xd5, 0xa1, 0x3d, 0xaa, 0x45, 0xdf,
-	0x07, 0xd1, 0xc7, 0x87, 0xff, 0x26, 0x58, 0x7e, 0x8d, 0x0c, 0x12, 0xac, 0xf2, 0xcd, 0xbb, 0x00,
-	0x00, 0x00, 0xff, 0xff, 0x29, 0xa8, 0xfb, 0x0a, 0xaa, 0x08, 0x00, 0x00,
+	// 961 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xa4, 0x56, 0xcd, 0x6e, 0xdb, 0x46,
+	0x10, 0x26, 0xad, 0x3f, 0x6b, 0x24, 0xd9, 0xca, 0xda, 0x75, 0x14, 0x57, 0x95, 0x55, 0x25, 0x4d,
+	0x5d, 0x1f, 0xa4, 0x20, 0x05, 0x8a, 0x16, 0xe9, 0x25, 0xb2, 0x89, 0x48, 0x30, 0x4c, 0xa9, 0x2b,
+	0xa5, 0x09, 0x02, 0x14, 0x04, 0x25, 0x6e, 0x29, 0x42, 0x12, 0xc9, 0x72, 0x29, 0xc3, 0xea, 0xad,
+	0xe8, 0xad, 0xa7, 0x02, 0x79, 0x89, 0x3e, 0x48, 0x0f, 0x01, 0x7a, 0xc9, 0xb1, 0xa7, 0xa0, 0xb0,
+	0x5f, 0xa4, 0xe0, 0x72, 0x45, 0x52, 0xbf, 0x49, 0xe0, 0xdb, 0xee, 0xfc, 0x7c, 0xf3, 0x7d, 0x43,
+	0xce, 0x60, 0xa1, 0xe4, 0x12, 0x53, 0x23, 0xce, 0xd8, 0x30, 0xdd, 0x9a, 0xed, 0x18, 0x97, 0x97,
+	0xea, 0xa8, 0xe6, 0x4e, 0x6d, 0x42, 0xab, 0xb6, 0x63, 0xb9, 0x16, 0x42, 0xa1, 0xbf, 0xca, 0xfd,
+	0x87, 0xc5, 0x48, 0x4e, 0xdf, 0x99, 0xda, 0xae, 0x55, 0x1b, 0x92, 0x29, 0xcf, 0x98, 0xf3, 0x32,
+	0xa4, 0x28, 0xde, 0xe1, 0xbe, 0x6e, 0xe9, 0x16, 0x3b, 0xd6, 0xbc, 0x93, 0x6f, 0xad, 0x34, 0xe1,
+	0x0e, 0x26, 0x63, 0xcb, 0x25, 0x1d, 0x43, 0x37, 0x89, 0x23, 0x39, 0x8e, 0xe5, 0x20, 0x04, 0xf1,
+	0xbe, 0xa5, 0x91, 0x82, 0x58, 0x16, 0x8f, 0x13, 0x98, 0x9d, 0x51, 0x19, 0x32, 0x1a, 0xa1, 0x7d,
+	0xc7, 0xb0, 0x5d, 0xc3, 0x32, 0x0b, 0x5b, 0x65, 0xf1, 0x38, 0x8d, 0xa3, 0xa6, 0xca, 0x09, 0xe4,
+	0xda, 0x93, 0xde, 0x39, 0x99, 0x62, 0xf2, 0xcb, 0x84, 0x50, 0x17, 0xdd, 0x83, 0xed, 0xfe, 0x40,
+	0x35, 0x4c, 0xc5, 0xd0, 0x18, 0x54, 0x1a, 0xa7, 0xd8, 0xbd, 0xa9, 0x55, 0xfe, 0x10, 0x61, 0x67,
+	0x16, 0x4c, 0x6d, 0xcb, 0xa4, 0x04, 0x3d, 0x81, 0x94, 0x3d, 0xe9, 0x29, 0x43, 0x32, 0x65, 0xc1,
+	0x99, 0xc7, 0xc5, 0x6a, 0xa4, 0x03, 0xbe, 0xda, 0x6a, 0x7b, 0xd2, 0x1b, 0x19, 0xfd, 0x73, 0x32,
+	0xad, 0xc7, 0xdf, 0xbc, 0x3b, 0x12, 0x70, 0xd2, 0x66, 0x20, 0xe8, 0x09, 0x24, 0x88, 0x47, 0x9d,
+	0xf1, 0xca, 0x3c, 0xfe, 0xa2, 0xba, 0xdc, 0xbc, 0xea, 0x92, 0x4e, 0xec, 0xe7, 0x54, 0x5e, 0xc2,
+	0xae, 0x67, 0xfd, 0xd1, 0x72, 0xc9, 0x8c, 0xfa, 0x09, 0xc4, 0x2f, 0x2d, 0x97, 0x70, 0x26, 0x07,
+	0x51, 0x38, 0xbf, 0xa7, 0x2c, 0x98, 0xc5, 0xcc, 0xc9, 0xdc, 0x9a, 0x97, 0xf9, 0xbb, 0x08, 0x88,
+	0x15, 0xd4, 0x7c, 0x70, 0x2e, 0xf5, 0xd1, 0x87, 0xa0, 0x73, 0x85, 0x7e, 0x8d, 0x5b, 0xe9, 0x1b,
+	0xc0, 0x9e, 0x67, 0x6d, 0x3b, 0x96, 0x6d, 0x51, 0x75, 0x34, 0xd3, 0xf8, 0x0d, 0x6c, 0xdb, 0xdc,
+	0xc4, 0x99, 0x1c, 0x2e, 0x33, 0x09, 0x92, 0x82, 0xd8, 0x4d, 0x7a, 0x5f, 0x8b, 0x70, 0xe0, 0xeb,
+	0x0d, 0x8b, 0x71, 0xcd, 0xdf, 0x7f, 0x4c, 0x35, 0xae, 0x3d, 0xac, 0x79, 0x2b, 0xfd, 0x39, 0xc8,
+	0xb4, 0x0d, 0x53, 0xe7, 0xba, 0x2b, 0x3b, 0x90, 0xf5, 0xaf, 0x3e, 0xb3, 0xca, 0x3f, 0x22, 0x14,
+	0xbd, 0xac, 0x0b, 0x32, 0x54, 0x5d, 0x32, 0xac, 0x4f, 0x8c, 0x91, 0x56, 0x1f, 0x59, 0xfd, 0xe1,
+	0xac, 0x51, 0xf7, 0x21, 0xe7, 0x13, 0x21, 0x8e, 0xa2, 0x6a, 0x9a, 0xc3, 0x7f, 0xe6, 0xec, 0xcc,
+	0xf8, 0x54, 0xd3, 0x1c, 0xf4, 0x70, 0xb1, 0x2b, 0xf5, 0xcc, 0xf5, 0xbb, 0xa3, 0xd4, 0x29, 0xeb,
+	0xcc, 0x59, 0xd0, 0x22, 0x74, 0x00, 0xc9, 0x01, 0x31, 0xf4, 0x81, 0x5b, 0x88, 0x95, 0xc5, 0xe3,
+	0x18, 0xe6, 0x37, 0xf4, 0x29, 0xa4, 0xc7, 0xea, 0x95, 0xd2, 0x9b, 0xba, 0x84, 0x16, 0xe2, 0xcc,
+	0xb5, 0x3d, 0x56, 0xaf, 0xea, 0xde, 0x1d, 0xdd, 0x85, 0x94, 0xe7, 0xd4, 0x55, 0x5a, 0x48, 0xf8,
+	0x59, 0x63, 0xf5, 0xea, 0x99, 0x4a, 0x51, 0x1e, 0x62, 0xee, 0x15, 0x2d, 0x24, 0xcb, 0xb1, 0xe3,
+	0x2c, 0xf6, 0x8e, 0x95, 0xdf, 0x44, 0x78, 0xb0, 0x49, 0x4d, 0xf0, 0x41, 0x8a, 0x90, 0xa6, 0x86,
+	0x6e, 0xaa, 0xee, 0xc4, 0xf1, 0xff, 0xc4, 0x2c, 0x0e, 0x0d, 0xb7, 0x6b, 0xf8, 0xdf, 0x29, 0x48,
+	0x5d, 0x10, 0x4a, 0x55, 0x9d, 0xa0, 0x73, 0xd8, 0xe5, 0x63, 0xad, 0x38, 0x3e, 0x03, 0xfe, 0xf9,
+	0x3f, 0x5f, 0x05, 0x39, 0xb7, 0x40, 0x1a, 0x02, 0xce, 0xd9, 0x73, 0x1b, 0x45, 0x86, 0x7c, 0x08,
+	0xe6, 0xeb, 0xe0, 0x04, 0x2b, 0x9b, 0xd0, 0xfc, 0xc8, 0x86, 0x80, 0x77, 0xec, 0xf9, 0x9d, 0xf3,
+	0x03, 0xdc, 0xf1, 0x24, 0x2b, 0xde, 0x8c, 0x05, 0xf4, 0x62, 0x0c, 0xf0, 0xfe, 0x2a, 0xc0, 0x85,
+	0x35, 0xd1, 0x10, 0xf0, 0x2e, 0x5d, 0xd8, 0x1c, 0xaf, 0x60, 0x9f, 0xb2, 0x09, 0x98, 0x81, 0x72,
+	0x9a, 0x71, 0x86, 0xfa, 0x70, 0x1d, 0xea, 0xfc, 0x86, 0x68, 0x08, 0x18, 0xd1, 0xe5, 0xbd, 0xf1,
+	0x13, 0x7c, 0xc2, 0xe8, 0xce, 0xc6, 0x22, 0xa0, 0x9c, 0x60, 0xe0, 0x5f, 0xae, 0x03, 0x5f, 0x98,
+	0xfc, 0x86, 0x80, 0xf7, 0xe8, 0x8a, 0x85, 0xf0, 0x33, 0x14, 0x38, 0xf5, 0x48, 0x01, 0x4e, 0x3f,
+	0xc9, 0x2a, 0x9c, 0xac, 0xa7, 0xbf, 0x38, 0xf0, 0x0d, 0x01, 0x1f, 0xd0, 0xd5, 0xab, 0xe0, 0x0c,
+	0xb2, 0xb6, 0x61, 0xea, 0x01, 0xfb, 0x14, 0xc3, 0x3e, 0x5a, 0xf9, 0x05, 0xc3, 0xb9, 0x6d, 0x08,
+	0x38, 0x63, 0x87, 0x57, 0xf4, 0x0c, 0x72, 0x1c, 0x85, 0x53, 0xdc, 0x66, 0x30, 0xe5, 0xf5, 0x30,
+	0x01, 0xb1, 0xac, 0x1d, 0xb9, 0xa3, 0x5f, 0xa1, 0xcc, 0xba, 0x3a, 0xf6, 0x27, 0x46, 0xe9, 0x79,
+	0x23, 0xa3, 0xf4, 0xbc, 0x99, 0x09, 0x28, 0xa6, 0x19, 0xf6, 0xa3, 0x75, 0xf2, 0xd7, 0x0d, 0x5b,
+	0x43, 0xc0, 0x45, 0xba, 0x69, 0xb5, 0xbc, 0x16, 0xe1, 0xab, 0xf7, 0x15, 0x0f, 0x15, 0x02, 0x63,
+	0xf1, 0xed, 0xc7, 0xb2, 0x88, 0x28, 0x7f, 0x40, 0x3f, 0x20, 0xae, 0x9e, 0x80, 0x18, 0x9d, 0x8c,
+	0x4f, 0xfe, 0x12, 0x21, 0xc9, 0xe6, 0x9a, 0x22, 0x04, 0x3b, 0x12, 0xc6, 0x2d, 0xdc, 0x51, 0x9e,
+	0xcb, 0xe7, 0x72, 0xeb, 0x85, 0x9c, 0x17, 0x50, 0x09, 0x0e, 0x03, 0x9b, 0xf4, 0xb2, 0x2d, 0x9d,
+	0x76, 0xa5, 0x33, 0x05, 0x4b, 0x9d, 0x76, 0x4b, 0xee, 0x48, 0x79, 0x11, 0x15, 0x60, 0x9f, 0xfb,
+	0xe5, 0x96, 0x72, 0xda, 0x92, 0x65, 0xe9, 0xb4, 0xdb, 0x6c, 0xc9, 0xf9, 0x2d, 0xf4, 0x19, 0xdc,
+	0xe3, 0x9e, 0xd0, 0xac, 0x74, 0x9b, 0x17, 0x52, 0xeb, 0x79, 0x37, 0x1f, 0x43, 0x77, 0x61, 0x8f,
+	0xbb, 0xb1, 0xf4, 0xf4, 0x2c, 0x70, 0xc4, 0x23, 0x88, 0x2f, 0x70, 0xb3, 0x2b, 0x05, 0x9e, 0x44,
+	0xbd, 0xf3, 0xe6, 0xba, 0x24, 0xbe, 0xbd, 0x2e, 0x89, 0xff, 0x5d, 0x97, 0xc4, 0x3f, 0x6f, 0x4a,
+	0xc2, 0xdb, 0x9b, 0x92, 0xf0, 0xef, 0x4d, 0x49, 0x78, 0xf5, 0x9d, 0x6e, 0xb8, 0x83, 0x49, 0xaf,
+	0xda, 0xb7, 0xc6, 0xb5, 0xe8, 0xfb, 0x28, 0xfa, 0xf8, 0xf2, 0xde, 0x44, 0xcb, 0xaf, 0xb1, 0x5e,
+	0x92, 0x79, 0xbe, 0xfe, 0x3f, 0x00, 0x00, 0xff, 0xff, 0xe3, 0x2b, 0xfe, 0x3c, 0xaa, 0x09, 0x00,
+	0x00,
 }
 
 func (m *RemoteSignerError) Marshal() (dAtA []byte, err error) {
@@ -1197,7 +1238,7 @@ func (m *PingResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *SignBytesRequest) Marshal() (dAtA []byte, err error) {
+func (m *SignMekatekBuildBlockRequest) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -1207,34 +1248,58 @@ func (m *SignBytesRequest) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *SignBytesRequest) MarshalTo(dAtA []byte) (int, error) {
+func (m *SignMekatekBuildBlockRequest) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *SignBytesRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *SignMekatekBuildBlockRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
-	if len(m.ChainId) > 0 {
-		i -= len(m.ChainId)
-		copy(dAtA[i:], m.ChainId)
-		i = encodeVarintTypes(dAtA, i, uint64(len(m.ChainId)))
+	if len(m.Txs) > 0 {
+		for iNdEx := len(m.Txs) - 1; iNdEx >= 0; iNdEx-- {
+			i -= len(m.Txs[iNdEx])
+			copy(dAtA[i:], m.Txs[iNdEx])
+			i = encodeVarintTypes(dAtA, i, uint64(len(m.Txs[iNdEx])))
+			i--
+			dAtA[i] = 0x32
+		}
+	}
+	if m.MaxGas != 0 {
+		i = encodeVarintTypes(dAtA, i, uint64(m.MaxGas))
+		i--
+		dAtA[i] = 0x28
+	}
+	if m.MaxBytes != 0 {
+		i = encodeVarintTypes(dAtA, i, uint64(m.MaxBytes))
+		i--
+		dAtA[i] = 0x20
+	}
+	if m.Height != 0 {
+		i = encodeVarintTypes(dAtA, i, uint64(m.Height))
+		i--
+		dAtA[i] = 0x18
+	}
+	if len(m.ChainID) > 0 {
+		i -= len(m.ChainID)
+		copy(dAtA[i:], m.ChainID)
+		i = encodeVarintTypes(dAtA, i, uint64(len(m.ChainID)))
 		i--
 		dAtA[i] = 0x12
 	}
-	if len(m.Bytes) > 0 {
-		i -= len(m.Bytes)
-		copy(dAtA[i:], m.Bytes)
-		i = encodeVarintTypes(dAtA, i, uint64(len(m.Bytes)))
+	if len(m.ProposerAddr) > 0 {
+		i -= len(m.ProposerAddr)
+		copy(dAtA[i:], m.ProposerAddr)
+		i = encodeVarintTypes(dAtA, i, uint64(len(m.ProposerAddr)))
 		i--
 		dAtA[i] = 0xa
 	}
 	return len(dAtA) - i, nil
 }
 
-func (m *SignedBytesResponse) Marshal() (dAtA []byte, err error) {
+func (m *SignMekatekBuildBlockRequestResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -1244,12 +1309,12 @@ func (m *SignedBytesResponse) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *SignedBytesResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *SignMekatekBuildBlockRequestResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *SignedBytesResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *SignMekatekBuildBlockRequestResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -1266,10 +1331,10 @@ func (m *SignedBytesResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x12
 	}
-	if len(m.Bytes) > 0 {
-		i -= len(m.Bytes)
-		copy(dAtA[i:], m.Bytes)
-		i = encodeVarintTypes(dAtA, i, uint64(len(m.Bytes)))
+	if len(m.Signature) > 0 {
+		i -= len(m.Signature)
+		copy(dAtA[i:], m.Signature)
+		i = encodeVarintTypes(dAtA, i, uint64(len(m.Signature)))
 		i--
 		dAtA[i] = 0xa
 	}
@@ -1476,16 +1541,16 @@ func (m *Message_PingResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	}
 	return len(dAtA) - i, nil
 }
-func (m *Message_SignBytesRequest) MarshalTo(dAtA []byte) (int, error) {
+func (m *Message_SignMekatekBuildBlockRequest) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *Message_SignBytesRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *Message_SignMekatekBuildBlockRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
-	if m.SignBytesRequest != nil {
+	if m.SignMekatekBuildBlockRequest != nil {
 		{
-			size, err := m.SignBytesRequest.MarshalToSizedBuffer(dAtA[:i])
+			size, err := m.SignMekatekBuildBlockRequest.MarshalToSizedBuffer(dAtA[:i])
 			if err != nil {
 				return 0, err
 			}
@@ -1497,16 +1562,16 @@ func (m *Message_SignBytesRequest) MarshalToSizedBuffer(dAtA []byte) (int, error
 	}
 	return len(dAtA) - i, nil
 }
-func (m *Message_SignedBytesResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *Message_SignMekatekBuildBlockRequestResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *Message_SignedBytesResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *Message_SignMekatekBuildBlockRequestResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
-	if m.SignedBytesResponse != nil {
+	if m.SignMekatekBuildBlockRequestResponse != nil {
 		{
-			size, err := m.SignedBytesResponse.MarshalToSizedBuffer(dAtA[:i])
+			size, err := m.SignMekatekBuildBlockRequestResponse.MarshalToSizedBuffer(dAtA[:i])
 			if err != nil {
 				return 0, err
 			}
@@ -1655,30 +1720,45 @@ func (m *PingResponse) Size() (n int) {
 	return n
 }
 
-func (m *SignBytesRequest) Size() (n int) {
+func (m *SignMekatekBuildBlockRequest) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	l = len(m.Bytes)
+	l = len(m.ProposerAddr)
 	if l > 0 {
 		n += 1 + l + sovTypes(uint64(l))
 	}
-	l = len(m.ChainId)
+	l = len(m.ChainID)
 	if l > 0 {
 		n += 1 + l + sovTypes(uint64(l))
+	}
+	if m.Height != 0 {
+		n += 1 + sovTypes(uint64(m.Height))
+	}
+	if m.MaxBytes != 0 {
+		n += 1 + sovTypes(uint64(m.MaxBytes))
+	}
+	if m.MaxGas != 0 {
+		n += 1 + sovTypes(uint64(m.MaxGas))
+	}
+	if len(m.Txs) > 0 {
+		for _, b := range m.Txs {
+			l = len(b)
+			n += 1 + l + sovTypes(uint64(l))
+		}
 	}
 	return n
 }
 
-func (m *SignedBytesResponse) Size() (n int) {
+func (m *SignMekatekBuildBlockRequestResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	l = len(m.Bytes)
+	l = len(m.Signature)
 	if l > 0 {
 		n += 1 + l + sovTypes(uint64(l))
 	}
@@ -1797,26 +1877,26 @@ func (m *Message_PingResponse) Size() (n int) {
 	}
 	return n
 }
-func (m *Message_SignBytesRequest) Size() (n int) {
+func (m *Message_SignMekatekBuildBlockRequest) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	if m.SignBytesRequest != nil {
-		l = m.SignBytesRequest.Size()
+	if m.SignMekatekBuildBlockRequest != nil {
+		l = m.SignMekatekBuildBlockRequest.Size()
 		n += 1 + l + sovTypes(uint64(l))
 	}
 	return n
 }
-func (m *Message_SignedBytesResponse) Size() (n int) {
+func (m *Message_SignMekatekBuildBlockRequestResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	if m.SignedBytesResponse != nil {
-		l = m.SignedBytesResponse.Size()
+	if m.SignMekatekBuildBlockRequestResponse != nil {
+		l = m.SignMekatekBuildBlockRequestResponse.Size()
 		n += 1 + l + sovTypes(uint64(l))
 	}
 	return n
@@ -2704,7 +2784,7 @@ func (m *PingResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *SignBytesRequest) Unmarshal(dAtA []byte) error {
+func (m *SignMekatekBuildBlockRequest) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -2727,49 +2807,15 @@ func (m *SignBytesRequest) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: SignBytesRequest: wiretype end group for non-group")
+			return fmt.Errorf("proto: SignMekatekBuildBlockRequest: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: SignBytesRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: SignMekatekBuildBlockRequest: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Bytes", wireType)
-			}
-			var byteLen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTypes
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				byteLen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if byteLen < 0 {
-				return ErrInvalidLengthTypes
-			}
-			postIndex := iNdEx + byteLen
-			if postIndex < 0 {
-				return ErrInvalidLengthTypes
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Bytes = append(m.Bytes[:0], dAtA[iNdEx:postIndex]...)
-			if m.Bytes == nil {
-				m.Bytes = []byte{}
-			}
-			iNdEx = postIndex
-		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ChainId", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field ProposerAddr", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -2797,61 +2843,100 @@ func (m *SignBytesRequest) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.ChainId = string(dAtA[iNdEx:postIndex])
+			m.ProposerAddr = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipTypes(dAtA[iNdEx:])
-			if err != nil {
-				return err
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ChainID", wireType)
 			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTypes
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
 				return ErrInvalidLengthTypes
 			}
-			if (iNdEx + skippy) > l {
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTypes
+			}
+			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *SignedBytesResponse) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowTypes
+			m.ChainID = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Height", wireType)
 			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
+			m.Height = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTypes
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Height |= int64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
 			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
+		case 4:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field MaxBytes", wireType)
 			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: SignedBytesResponse: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: SignedBytesResponse: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
+			m.MaxBytes = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTypes
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.MaxBytes |= int64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 5:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field MaxGas", wireType)
+			}
+			m.MaxGas = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTypes
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.MaxGas |= int64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 6:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Bytes", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Txs", wireType)
 			}
 			var byteLen int
 			for shift := uint(0); ; shift += 7 {
@@ -2878,9 +2963,91 @@ func (m *SignedBytesResponse) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Bytes = append(m.Bytes[:0], dAtA[iNdEx:postIndex]...)
-			if m.Bytes == nil {
-				m.Bytes = []byte{}
+			m.Txs = append(m.Txs, make([]byte, postIndex-iNdEx))
+			copy(m.Txs[len(m.Txs)-1], dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTypes(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTypes
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *SignMekatekBuildBlockRequestResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTypes
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: SignMekatekBuildBlockRequestResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: SignMekatekBuildBlockRequestResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Signature", wireType)
+			}
+			var byteLen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTypes
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				byteLen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if byteLen < 0 {
+				return ErrInvalidLengthTypes
+			}
+			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTypes
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Signature = append(m.Signature[:0], dAtA[iNdEx:postIndex]...)
+			if m.Signature == nil {
+				m.Signature = []byte{}
 			}
 			iNdEx = postIndex
 		case 2:
@@ -3251,7 +3418,7 @@ func (m *Message) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 9:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field SignBytesRequest", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field SignMekatekBuildBlockRequest", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -3278,15 +3445,15 @@ func (m *Message) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			v := &SignBytesRequest{}
+			v := &SignMekatekBuildBlockRequest{}
 			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
-			m.Sum = &Message_SignBytesRequest{v}
+			m.Sum = &Message_SignMekatekBuildBlockRequest{v}
 			iNdEx = postIndex
 		case 10:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field SignedBytesResponse", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field SignMekatekBuildBlockRequestResponse", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -3313,11 +3480,11 @@ func (m *Message) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			v := &SignedBytesResponse{}
+			v := &SignMekatekBuildBlockRequestResponse{}
 			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
-			m.Sum = &Message_SignedBytesResponse{v}
+			m.Sum = &Message_SignMekatekBuildBlockRequestResponse{v}
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
