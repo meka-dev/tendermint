@@ -21,6 +21,7 @@ type PrivValidator interface {
 	SignProposal(chainID string, proposal *tmproto.Proposal) error
 
 	SignMekatekBuildBlockRequest(*mekatek.BuildBlockRequest) error
+	SignMekatekRegisterChallenge(*mekatek.RegisterChallenge) error
 }
 
 type PrivValidatorsByAddress []PrivValidator
@@ -120,6 +121,16 @@ func (pv MockPV) SignMekatekBuildBlockRequest(req *mekatek.BuildBlockRequest) er
 	}
 
 	req.Signature = signature
+	return nil
+}
+
+func (pv MockPV) SignMekatekRegisterChallenge(c *mekatek.RegisterChallenge) error {
+	signature, err := pv.PrivKey.Sign(mekatek.RegisterChallengeSignatureBytes(c.Bytes))
+	if err != nil {
+		return err
+	}
+
+	c.Signature = signature
 	return nil
 }
 

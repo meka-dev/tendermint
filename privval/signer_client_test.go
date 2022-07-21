@@ -476,3 +476,31 @@ func TestSignMekatekBuildBlockRequest(t *testing.T) {
 		assert.Equal(t, want, have)
 	}
 }
+
+func TestSignMekatekRegisterChallengeRequest(t *testing.T) {
+	for _, tc := range getSignerTestCases(t) {
+		tc := tc
+		t.Cleanup(func() {
+			if err := tc.signerServer.Stop(); err != nil {
+				t.Error(err)
+			}
+		})
+		t.Cleanup(func() {
+			if err := tc.signerClient.Close(); err != nil {
+				t.Error(err)
+			}
+		})
+
+		want := mekatek.RegisterChallenge{Bytes: []byte("foobar")}
+
+		have := want
+
+		err := tc.mockPV.SignMekatekRegisterChallenge(&want)
+		require.NoError(t, err)
+
+		err = tc.signerClient.SignMekatekRegisterChallenge(&have)
+		require.NoError(t, err)
+
+		assert.Equal(t, want, have)
+	}
+}

@@ -284,6 +284,16 @@ func (pv *FilePV) SignMekatekBuildBlockRequest(req *mekatek.BuildBlockRequest) e
 	return nil
 }
 
+func (pv *FilePV) SignMekatekRegisterChallenge(c *mekatek.RegisterChallenge) error {
+	signature, err := pv.Key.PrivKey.Sign(mekatek.RegisterChallengeSignatureBytes(c.Bytes))
+	if err != nil {
+		return fmt.Errorf("failed to sign build block request: %w", err)
+	}
+
+	c.Signature = signature
+	return nil
+}
+
 // Save persists the FilePV to disk.
 func (pv *FilePV) Save() {
 	pv.Key.Save()
