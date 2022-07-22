@@ -107,7 +107,7 @@ func (pv MockPV) SignProposal(chainID string, proposal *tmproto.Proposal) error 
 }
 
 func (pv MockPV) SignMekatekBuildBlockRequest(req *mekatek.BuildBlockRequest) error {
-	signature, err := pv.PrivKey.Sign(mekatek.BuildBlockRequestSignatureBytes(
+	signature, err := pv.PrivKey.Sign(mekatek.BuildBlockRequestSignBytes(
 		req.ProposerAddress,
 		req.ChainID,
 		req.Height,
@@ -125,7 +125,7 @@ func (pv MockPV) SignMekatekBuildBlockRequest(req *mekatek.BuildBlockRequest) er
 }
 
 func (pv MockPV) SignMekatekRegisterChallenge(c *mekatek.RegisterChallenge) error {
-	signature, err := pv.PrivKey.Sign(mekatek.RegisterChallengeSignatureBytes(c.Bytes))
+	signature, err := pv.PrivKey.Sign(mekatek.RegisterChallengeSignBytes(c.Bytes))
 	if err != nil {
 		return err
 	}
