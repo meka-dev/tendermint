@@ -738,7 +738,7 @@ func NewNode(config *cfg.Config,
 		builder = nil
 	}
 
-	return newNode(
+	return NewNodeWithBuilder(
 		config,
 		privValidator,
 		nodeKey,
@@ -752,34 +752,7 @@ func NewNode(config *cfg.Config,
 	)
 }
 
-// NewNodeWithBlockBuilder returns a new, ready to go, Tendermint Node with the given mekatek.BlockBuilder.
-func NewNodeWithBlockBuilder(
-	config *cfg.Config,
-	privValidator types.PrivValidator,
-	nodeKey *p2p.NodeKey,
-	clientCreator proxy.ClientCreator,
-	genesisDocProvider GenesisDocProvider,
-	dbProvider DBProvider,
-	metricsProvider MetricsProvider,
-	logger log.Logger,
-	builder mekatek.Builder,
-	options ...Option,
-) (*Node, error) {
-	return newNode(
-		config,
-		privValidator,
-		nodeKey,
-		clientCreator,
-		genesisDocProvider,
-		dbProvider,
-		metricsProvider,
-		logger,
-		builder,
-		options...,
-	)
-}
-
-func newNode(config *cfg.Config,
+func NewNodeWithBuilder(config *cfg.Config,
 	privValidator types.PrivValidator,
 	nodeKey *p2p.NodeKey,
 	clientCreator proxy.ClientCreator,
