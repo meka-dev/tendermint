@@ -718,12 +718,24 @@ func NewNode(config *cfg.Config,
 		apiURL      = mekatek.GetURIFromEnv("MEKATEK_BLOCK_BUILDER_API_URL")
 		apiClient   = &http.Client{Timeout: mekatek.GetDurationFromEnv("MEKATEK_BLOCK_BUILDER_TIMEOUT")}
 		paymentAddr = os.Getenv("MEKATEK_BLOCK_BUILDER_PAYMENT_ADDRESS") // TODO: default to validator pubkey addr?
-		proposer    = &mekatekProposer{PrivValidator: privValidator}
 	)
 
-	builder, err := mekatek.NewBuilder(config.ChainID(), apiClient, apiURL, paymentAddr, proposer)
+	builder := mekatek.NewBuilder(apiClient, apiURL, privValidator)
+
+	pubKey, err := privValidator.GetPubKey()
 	if err != nil {
-		logger.Error("create Mekatek block builder failed", "err", err)
+		return nil, fmt.Errorf("failed to get validator pub key: %w", err)
+	}
+
+	ctx := context.Background()
+	_, err = builder.Register(ctx, &mekatek.RegisterRequest{
+		ChainID:         config.ChainID(),
+		ProposerAddress: pubKey.Address().String(),
+		PaymentAddress:  paymentAddr,
+	})
+	if err != nil {
+		logger.Error("failed to register with Mekatek builder API", "error", err)
+		builder = nil
 	}
 
 	return newNode(
@@ -999,37 +1011,6 @@ func newNode(config *cfg.Config,
 	}
 
 	return node, nil
-}
-
-type mekatekProposer struct{ types.PrivValidator }
-
-var _ mekatek.Proposer = (*mekatekProposer)(nil)
-
-func (p *mekatekProposer) Address() (string, error) {
-	pubKey, err := p.PrivValidator.GetPubKey()
-	if err != nil {
-		return "", fmt.Errorf("mekatek.Proposer Address error: %w", err)
-	}
-
-	return pubKey.Address().String(), nil
-}
-
-func (p *mekatekProposer) SignBuildBlockRequest(r *mekatek.BuildBlockRequest) error {
-	err := p.PrivValidator.SignMekatekBuildBlockRequest(r)
-	if err != nil {
-		return fmt.Errorf("mekatek.Proposer SignMekatekBuildBlockRequest error: %w", err)
-	}
-
-	return nil
-}
-
-func (p *mekatekProposer) SignRegisterChallenge(c *mekatek.RegisterChallenge) error {
-	err := p.PrivValidator.SignMekatekRegisterChallenge(c)
-	if err != nil {
-		return fmt.Errorf("mekatek.Proposer SignRegisterChallenge error: %w", err)
-	}
-
-	return nil
 }
 
 // OnStart starts the Node. It implements service.Service.

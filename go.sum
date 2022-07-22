@@ -777,6 +777,10 @@ github.com/meka-dev/mekatek v0.0.0-20220722113505-02cf52166e3f h1:+xpQO7vI+Fz1V2
 github.com/meka-dev/mekatek v0.0.0-20220722113505-02cf52166e3f/go.mod h1:2NSW5syQ3ymh3Hb+RDX7usFZaU2rP9TQdFNHRlY2FvQ=
 github.com/meka-dev/mekatek v0.0.0-20220722125559-8d91e43bcbc5 h1:3bh3I7DSq2Vo6nmHGC96FXnNmjHzmqetyTONLgRkHY8=
 github.com/meka-dev/mekatek v0.0.0-20220722125559-8d91e43bcbc5/go.mod h1:2NSW5syQ3ymh3Hb+RDX7usFZaU2rP9TQdFNHRlY2FvQ=
+github.com/meka-dev/mekatek v0.0.0-20220722134703-a79eb6f90d46 h1:EFharnaYPkiMSTkxH5d2WoEYzRTVqyNi9Y2/YBayEfw=
+github.com/meka-dev/mekatek v0.0.0-20220722134703-a79eb6f90d46/go.mod h1:2NSW5syQ3ymh3Hb+RDX7usFZaU2rP9TQdFNHRlY2FvQ=
+github.com/meka-dev/mekatek v0.0.0-20220722134844-cb68579e0aab h1:n1XyJ0dxbfEwXpU8ezeDcE4no2Rlq7wD5AB/tC3CnMk=
+github.com/meka-dev/mekatek v0.0.0-20220722134844-cb68579e0aab/go.mod h1:2NSW5syQ3ymh3Hb+RDX7usFZaU2rP9TQdFNHRlY2FvQ=
 github.com/mgechev/dots v0.0.0-20210922191527-e955255bf517/go.mod h1:KQ7+USdGKfpPjXk4Ga+5XxQM4Lm4e3gAogrreFAYpOg=
 github.com/mgechev/revive v1.2.1 h1:GjFml7ZsoR0IrQ2E2YIvWFNS5GPDV7xNwvA5GM1HZC4=
 github.com/mgechev/revive v1.2.1/go.mod h1:+Ro3wqY4vakcYNtkBWdZC7dBg1xSB6sp054wWwmeFm0=
