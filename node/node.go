@@ -714,6 +714,70 @@ func NewNode(config *cfg.Config,
 	logger log.Logger,
 	options ...Option,
 ) (*Node, error) {
+	var (
+		apiURL      = mekatek.GetURIFromEnv("MEKATEK_BLOCK_BUILDER_API_URL")
+		apiClient   = &http.Client{Timeout: mekatek.GetDurationFromEnv("MEKATEK_BLOCK_BUILDER_TIMEOUT")}
+		paymentAddr = os.Getenv("MEKATEK_BLOCK_BUILDER_PAYMENT_ADDRESS") // TODO: default to validator pubkey addr?
+		proposer    = &mekatekProposer{PrivValidator: privValidator}
+	)
+
+	builder, err := mekatek.NewBuilder(config.ChainID(), apiClient, apiURL, paymentAddr, proposer)
+	if err != nil {
+		logger.Error("create Mekatek block builder failed", "err", err)
+	}
+
+	return newNode(
+		config,
+		privValidator,
+		nodeKey,
+		clientCreator,
+		genesisDocProvider,
+		dbProvider,
+		metricsProvider,
+		logger,
+		builder,
+		options...,
+	)
+}
+
+// NewNodeWithBlockBuilder returns a new, ready to go, Tendermint Node with the given mekatek.BlockBuilder.
+func NewNodeWithBlockBuilder(
+	config *cfg.Config,
+	privValidator types.PrivValidator,
+	nodeKey *p2p.NodeKey,
+	clientCreator proxy.ClientCreator,
+	genesisDocProvider GenesisDocProvider,
+	dbProvider DBProvider,
+	metricsProvider MetricsProvider,
+	logger log.Logger,
+	builder mekatek.Builder,
+	options ...Option,
+) (*Node, error) {
+	return newNode(
+		config,
+		privValidator,
+		nodeKey,
+		clientCreator,
+		genesisDocProvider,
+		dbProvider,
+		metricsProvider,
+		logger,
+		builder,
+		options...,
+	)
+}
+
+func newNode(config *cfg.Config,
+	privValidator types.PrivValidator,
+	nodeKey *p2p.NodeKey,
+	clientCreator proxy.ClientCreator,
+	genesisDocProvider GenesisDocProvider,
+	dbProvider DBProvider,
+	metricsProvider MetricsProvider,
+	logger log.Logger,
+	builder mekatek.Builder,
+	options ...Option,
+) (*Node, error) {
 
 	blockStore, stateDB, err := initDBs(config, dbProvider)
 	if err != nil {
@@ -804,27 +868,6 @@ func NewNode(config *cfg.Config,
 		return nil, err
 	}
 
-	beopts := []sm.BlockExecutorOption{
-		sm.BlockExecutorWithMetrics(smMetrics),
-	}
-
-	{
-		var (
-			apiURL      = mekatek.GetURIFromEnv("MEKATEK_BLOCK_BUILDER_API_URL")
-			apiTimeout  = mekatek.GetDurationFromEnv("MEKATEK_BLOCK_BUILDER_TIMEOUT")
-			paymentAddr = os.Getenv("MEKATEK_BLOCK_BUILDER_PAYMENT_ADDRESS") // TODO: default to validator pubkey addr?
-			proposer    = &mekatekProposer{PrivValidator: privValidator}
-		)
-
-		bb, err := mekatek.NewBuilder(state.ChainID, apiURL, apiTimeout, paymentAddr, proposer)
-		switch {
-		case err == nil:
-			beopts = append(beopts, sm.BlockExecutorWithBuilder(bb))
-		case err != nil:
-			logger.Error("create Mekatek block builder failed", "err", err)
-		}
-	}
-
 	// make block executor for consensus and blockchain reactors to execute blocks
 	blockExec := sm.NewBlockExecutor(
 		stateStore,
@@ -832,7 +875,8 @@ func NewNode(config *cfg.Config,
 		proxyApp.Consensus(),
 		mempool,
 		evidencePool,
-		beopts...,
+		sm.BlockExecutorWithMetrics(smMetrics),
+		sm.BlockExecutorWithBuilder(builder),
 	)
 
 	// Make BlockchainReactor. Don't start fast sync if we're doing a state sync first.
