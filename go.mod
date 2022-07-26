@@ -46,7 +46,7 @@ require (
 require (
 	github.com/bufbuild/buf v1.4.0
 	github.com/golangci/golangci-lint v1.46.2
-	github.com/meka-dev/mekatek v0.0.0-20220722134844-cb68579e0aab
+	github.com/meka-dev/mekatek v0.0.0-20220726145453-3bc6645f1df0
 	github.com/prometheus/common v0.34.0 // indirect
 	github.com/syndtr/goleveldb v1.0.1-0.20200815110645-5c35d600f0ca
 	github.com/vektra/mockery/v2 v2.14.0

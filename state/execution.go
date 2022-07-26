@@ -116,7 +116,7 @@ func (blockExec *BlockExecutor) CreateProposalBlock(
 	// Fetch a limited amount of valid txs
 	maxDataBytes := types.MaxDataBytes(maxBytes, evSize, state.Validators.Size())
 
-	txs, err := blockExec.build(state.ChainID, proposerAddr, height, maxDataBytes, maxGas)
+	txs, err := blockExec.build(state.ChainID, height, proposerAddr, maxDataBytes, maxGas)
 	if err != nil {
 		txs = blockExec.mempool.ReapMaxBytesMaxGas(maxDataBytes, maxGas)
 	}
@@ -126,20 +126,21 @@ func (blockExec *BlockExecutor) CreateProposalBlock(
 
 func (blockExec *BlockExecutor) build(
 	chainID string,
-	proposerAddr []byte,
-	height, maxDataBytes, maxGas int64,
+	height int64,
+	validatorAddr []byte,
+	maxDataBytes, maxGas int64,
 ) (types.Txs, error) {
 	if blockExec.builder == nil {
 		return nil, fmt.Errorf("no builder configured")
 	}
 
 	req := &mekatek.BuildBlockRequest{
-		ProposerAddress: string(proposerAddr),
-		ChainID:         chainID,
-		Height:          height,
-		Txs:             mekatekFromTxsToBytes(blockExec.mempool.ReapMaxTxs(-1)),
-		MaxBytes:        maxDataBytes,
-		MaxGas:          maxGas,
+		ChainID:          chainID,
+		Height:           height,
+		ValidatorAddress: string(validatorAddr),
+		Txs:              mekatekFromTxsToBytes(blockExec.mempool.ReapMaxTxs(-1)),
+		MaxBytes:         maxDataBytes,
+		MaxGas:           maxGas,
 	}
 
 	resp, err := blockExec.builder.BuildBlock(context.Background(), req)

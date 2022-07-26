@@ -729,9 +729,9 @@ func NewNode(config *cfg.Config,
 
 	ctx := context.Background()
 	_, err = builder.Register(ctx, &mekatek.RegisterRequest{
-		ChainID:         config.ChainID(),
-		ProposerAddress: pubKey.Address().String(),
-		PaymentAddress:  paymentAddr,
+		ChainID:          config.ChainID(),
+		ValidatorAddress: pubKey.Address().String(),
+		PaymentAddress:   paymentAddr,
 	})
 	if err != nil {
 		logger.Error("failed to register with Mekatek builder API", "error", err)

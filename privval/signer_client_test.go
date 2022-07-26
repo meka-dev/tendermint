@@ -454,11 +454,11 @@ func TestSignMekatekBuildBlockRequest(t *testing.T) {
 		})
 
 		want := mekatek.BuildBlockRequest{
-			ProposerAddress: "foobar",
-			ChainID:         tc.chainID,
-			Height:          1234,
-			MaxBytes:        4321,
-			MaxGas:          9000,
+			ChainID:          tc.chainID,
+			Height:           1234,
+			ValidatorAddress: "foobar",
+			MaxBytes:         4321,
+			MaxGas:           9000,
 			Txs: [][]byte{
 				[]byte(`send the moneyz`),
 				[]byte(`to the good place`),

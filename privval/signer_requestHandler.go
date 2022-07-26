@@ -99,12 +99,12 @@ func DefaultValidationRequestHandler(
 		}
 
 		msr := &mekatek.BuildBlockRequest{
-			ProposerAddress: sr.ProposerAddr,
-			ChainID:         sr.ChainID,
-			Height:          sr.Height,
-			MaxBytes:        sr.MaxBytes,
-			MaxGas:          sr.MaxGas,
-			Txs:             sr.Txs,
+			ChainID:          sr.ChainID,
+			Height:           sr.Height,
+			ValidatorAddress: sr.ValidatorAddr,
+			MaxBytes:         sr.MaxBytes,
+			MaxGas:           sr.MaxGas,
+			Txs:              sr.Txs,
 		}
 
 		err := privVal.SignMekatekBuildBlockRequest(msr)

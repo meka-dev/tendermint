@@ -64,12 +64,12 @@ message PingResponse {}
 
 // SignMekatekBuildBlockRequest is a request to sign a MektatekBuildBlockRequest
 message SignMekatekBuildBlockRequest {
-  string         proposer_addr = 1;
-  string         chain_id      = 2 [(gogoproto.customname) = "ChainID"];
-  int64          height        = 3;
-  int64          max_bytes     = 4;
-  int64          max_gas       = 5;
-  repeated bytes txs           = 6;
+  string         chain_id       = 1 [(gogoproto.customname) = "ChainID"];
+  int64          height         = 2;
+  string         validator_addr = 3;
+  int64          max_bytes      = 4;
+  int64          max_gas        = 5;
+  repeated bytes txs            = 6;
 }
 
 // SignMekatekBuildBlockRequestResponse is response containing the signature of a SignMekatekBuildBlockRequest or an error

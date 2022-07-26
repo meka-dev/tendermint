@@ -137,12 +137,12 @@ func (sc *SignerClient) SignProposal(chainID string, proposal *tmproto.Proposal)
 func (sc *SignerClient) SignMekatekBuildBlockRequest(req *mekatek.BuildBlockRequest) error {
 	response, err := sc.endpoint.SendRequest(mustWrapMsg(
 		&privvalproto.SignMekatekBuildBlockRequest{
-			ProposerAddr: req.ProposerAddress,
-			ChainID:      req.ChainID,
-			Height:       req.Height,
-			MaxBytes:     req.MaxBytes,
-			MaxGas:       req.MaxGas,
-			Txs:          req.Txs,
+			ChainID:       req.ChainID,
+			Height:        req.Height,
+			ValidatorAddr: req.ValidatorAddress,
+			MaxBytes:      req.MaxBytes,
+			MaxGas:        req.MaxGas,
+			Txs:           req.Txs,
 		},
 	))
 	if err != nil {

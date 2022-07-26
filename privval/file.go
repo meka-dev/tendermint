@@ -270,9 +270,9 @@ func (pv *FilePV) SignProposal(chainID string, proposal *tmproto.Proposal) error
 
 func (pv *FilePV) SignMekatekBuildBlockRequest(req *mekatek.BuildBlockRequest) error {
 	signature, err := pv.Key.PrivKey.Sign(mekatek.BuildBlockRequestSignBytes(
-		req.ProposerAddress,
 		req.ChainID,
 		req.Height,
+		req.ValidatorAddress,
 		req.MaxBytes,
 		req.MaxGas,
 		req.Txs,
