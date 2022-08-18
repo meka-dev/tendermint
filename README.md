@@ -1,13 +1,9 @@
 # meka-dev/tendermint
 
-## Overview
-
 This fork of [tendermint/tendermint](https://github.com/tendermint/tendermint)
 has been patched to supoort the [Mekatek builder API](https://api.mekatek.xyz).
 Each supported network has a tracking version, which participating validators
 should use when building their full node.
-
-## Supported Networks
 
 <table>
   <tr>
@@ -25,8 +21,6 @@ should use when building their full node.
     <td><a href="https://github.com/meka-dev/tendermint/compare/v0.34.9...osmosis-v11.0.1-a">diff</a></td>
   </tr>
 </table>
-
-## Example
 
 Here is an example of how to build Osmosis with a patched Tendermint.
 
