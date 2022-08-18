@@ -12,7 +12,7 @@ should use when building their full node.
     <th align="left">Network</th>
     <th align="left">Network Version</th>
     <th align="left">Tendermint version</th>
-    <th align="left">Tracking version (use this)</th>
+    <th align="left">Tracking version</th>
     <th align="left">Diff</th>
   </tr>
   <tr>
