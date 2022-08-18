@@ -38,7 +38,3 @@ go mod edit -replace=github.com/tendermint/tendermint=github.com/meka-dev/tender
 go mod tidy
 make install
 ```
-
-## Upstream README
-
-[README.upstream.md](/README.upstream.md)
