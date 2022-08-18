@@ -1,15 +1,18 @@
-# meka-dev/tendermint
+<div style="margin: 1em;">
 
+<p>
 This fork of [tendermint/tendermint](https://github.com/tendermint/tendermint)
 has been patched to supoort the [Mekatek builder API](https://api.mekatek.xyz).
-We maintain a tracking branch for each supported network.
+We maintain a tracking branch for each supported network, which participating
+validators should use when building their full node.
+</p>
 
 <table style="text-align: left;">
   <tr>
     <th>Network</th>
     <th>Network version</th>
     <th>Tendermint version</th>
-    <th>Patched branch</th>
+    <th>Patch version</th>
     <th>Diff</th>
   </tr>
   <tr>
@@ -20,6 +23,8 @@ We maintain a tracking branch for each supported network.
     <td><a href="https://github.com/meka-dev/tendermint/compare/v0.34.x...v0.34.x-meka">diff</a></td>
   </tr>
 </table>
+
+</div>
 
 ---
 
