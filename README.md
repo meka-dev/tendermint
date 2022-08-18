@@ -4,12 +4,12 @@ This fork of [tendermint/tendermint](https://github.com/tendermint/tendermint)
 has been patched to supoort the [Mekatek builder API](https://api.mekatek.xyz).
 We maintain a tracking branch for each supported network.
 
-<table>
+<table style="text-align: left;">
   <tr>
     <th>Network</th>
-    <th>Version</th>
-    <th>Tendermint</th>
-    <th>Branch</th>
+    <th>Network version</th>
+    <th>Tendermint version</th>
+    <th>Patched branch</th>
     <th>Diff</th>
   </tr>
   <tr>
