@@ -10,13 +10,13 @@ should use when building their full node.
 <table style="text-align: left;">
   <tr>
     <th>Network</th>
-    <th>Network version</th>
-    <th>Tendermint version</th>
-    <th>Patched Tendermint version</th>
+    <th>Version</th>
+    <th>Tendermint</th>
+    <th>Fork</th>
     <th>Diff</th>
   </tr>
   <tr>
-    <td>Osmosis</td>
+    <td><a href="https://github.com/osmosis-labs/osmosis">Osmosis</a></td>
     <td><a href="https://github.com/osmosis-labs/osmosis/tree/v11.0.1">v11.0.1</a></td>
     <td><a href="https://github.com/osmosis-labs/osmosis/blob/v11.0.1/go.mod#L28">v0.34.9</td>
     <td><a href="https://github.com/meka-dev/tendermint/tree/v0.0.0-osmosis-v11.0.1-a">v0.0.0-osmosis-v11.0.1-a</a></td>
