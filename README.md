@@ -33,4 +33,4 @@ go mod tidy
 make install
 ```
 
-_____________ <br/> <super>[upstream README](/README.upstream.md)</super>
+_______________ <br/> [upstream README](/README.upstream.md)
