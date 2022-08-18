@@ -24,4 +24,4 @@ should use when building their full node.
 
 ---
 
-<sub>[original README](/README.orig.md)</sub>
+<sub>[README.upstream.md](/README.upstream.md)</sub>
