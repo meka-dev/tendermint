@@ -1,11 +1,13 @@
 # meka-dev/tendermint
 
+## Overview
+
 This fork of [tendermint/tendermint](https://github.com/tendermint/tendermint)
 has been patched to supoort the [Mekatek builder API](https://api.mekatek.xyz).
 Each supported network has a tracking version, which participating validators
 should use when building their full node.
 
-## Networks
+## Supported Networks
 
 <table>
   <tr>
@@ -37,4 +39,6 @@ go mod tidy
 make install
 ```
 
-________________ <br/> [upstream README](/README.upstream.md)
+## Upstream README
+
+[README.upstream.md](/README.upstream.md)
