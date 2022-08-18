@@ -22,6 +22,17 @@ should use when building their full node.
   </tr>
 </table>
 
----
+Here is an example of how to build Osmosis with a patched Tendermint.
+
+```shell
+git clone https://github.com/osmosis-labs/osmosis
+cd osmosis
+git checkout v11.0.1
+go mod edit -replace=github.com/tendermint/tendermint=github.com/meka-dev/tendermint@v0.34.x-meka
+go mod tidy
+make install
+```
+
+See the [Mekatek Builder API documentation](https://api.mekatek.xyz) for more.
 
 <sub>[README.upstream.md](/README.upstream.md)</sub>
