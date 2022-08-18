@@ -8,9 +8,9 @@ should use when building their full node.
 <table>
   <tr>
     <th align="left">Network</th>
-    <th align="left">Network Version</th>
-    <th align="left">Tendermint version</th>
-    <th align="left">Mekatek Tendermint tag</th>
+    <th align="left">Version</th>
+    <th align="left">tendermint/tendermint</th>
+    <th align="left">meka-dev/tendermint</th>
     <th align="left">Diff</th>
   </tr>
   <tr>
