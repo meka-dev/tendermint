@@ -1,3 +1,28 @@
+# meka-dev/tendermint
+
+This fork of [tendermint/tendermint](https://github.com/tendermint/tendermint)
+has been patched to supoort the [Mekatek builder API](https://api.mekatek.xyz).
+We maintain a tracking branch for each supported network.
+
+<table>
+  <tr>
+    <th>Network</th>
+    <th>Version</th>
+    <th>Tendermint</th>
+    <th>Branch</th>
+    <th>Diff</th>
+  </tr>
+  <tr>
+    <td>Osmosis</td>
+    <td><a href="https://github.com/osmosis-labs/osmosis/tree/v11.0.1">v11.0.1</a></td>
+    <td><a href="https://github.com/osmosis-labs/osmosis/blob/v11.0.1/go.mod#L28">v0.34.9</td>
+    <td><a href="https://github.com/meka-dev/tendermint/tree/v0.34.x-meka">v0.34.x-meka</a></td>
+    <td><a href="https://github.com/meka-dev/tendermint/compare/v0.34.x...v0.34.x-meka">diff</a></td>
+  </tr>
+</table>
+
+---
+
 # Tendermint
 
 ![banner](docs/tendermint-core-image.jpg)
