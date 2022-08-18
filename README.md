@@ -5,6 +5,8 @@ has been patched to supoort the [Mekatek builder API](https://api.mekatek.xyz).
 Each supported network has a tracking branch, which participating validators
 should use when building their full node.
 
+## Networks
+
 <table style="text-align: left;">
   <tr>
     <th>Network</th>
@@ -21,6 +23,8 @@ should use when building their full node.
     <td><a href="https://github.com/meka-dev/tendermint/compare/v0.34.x...v0.34.x-meka">diff</a></td>
   </tr>
 </table>
+
+## Example
 
 Here is an example of how to build Osmosis with a patched Tendermint.
 
