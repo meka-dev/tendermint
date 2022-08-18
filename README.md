@@ -7,13 +7,13 @@ should use when building their full node.
 
 ## Networks
 
-<table style="text-align: left;">
+<table>
   <tr>
-    <th style="text-align: left;">Network</th>
-    <th style="text-align: left;">Version</th>
-    <th style="text-align: left;">Tendermint</th>
-    <th style="text-align: left;">Fork</th>
-    <th style="text-align: left;">Diff</th>
+    <th align="left">Network</th>
+    <th align="left">Network Version</th>
+    <th align="left">Tendermint version</th>
+    <th align="left">Patched Tendermint</th>
+    <th align="left">Diff</th>
   </tr>
   <tr>
     <td><a href="https://github.com/osmosis-labs/osmosis">Osmosis</a></td>
