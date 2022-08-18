@@ -9,11 +9,11 @@ should use when building their full node.
 
 <table style="text-align: left;">
   <tr>
-    <th>Network</th>
-    <th>Version</th>
-    <th>Tendermint</th>
-    <th>Fork</th>
-    <th>Diff</th>
+    <th style="text-align: left;">Network</th>
+    <th style="text-align: left;">Version</th>
+    <th style="text-align: left;">Tendermint</th>
+    <th style="text-align: left;">Fork</th>
+    <th style="text-align: left;">Diff</th>
   </tr>
   <tr>
     <td><a href="https://github.com/osmosis-labs/osmosis">Osmosis</a></td>
