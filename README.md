@@ -22,4 +22,6 @@ should use when building their full node.
   </tr>
 </table>
 
-[README.orig.md](/README.original.md)
+---
+
+<sub>[original README](/README.orig.md)</sub>
