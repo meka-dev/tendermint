@@ -33,6 +33,4 @@ go mod tidy
 make install
 ```
 
-See the [Mekatek Builder API documentation](https://api.mekatek.xyz) for more.
-
-<sub>[README.upstream.md](/README.upstream.md)</sub>
+<sub>[upstream README](/README.upstream.md)</sub>
