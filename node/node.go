@@ -7,12 +7,15 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
+	"github.com/meka-dev/mekatek-go/mekabuild"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/rs/cors"
+
 	dbm "github.com/tendermint/tm-db"
 
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -141,12 +144,12 @@ type fastSyncReactor interface {
 // WARNING: using any name from the below list of the existing reactors will
 // result in replacing it with the custom one.
 //
-//  - MEMPOOL
-//  - BLOCKCHAIN
-//  - CONSENSUS
-//  - EVIDENCE
-//  - PEX
-//  - STATESYNC
+//   - MEMPOOL
+//   - BLOCKCHAIN
+//   - CONSENSUS
+//   - EVIDENCE
+//   - PEX
+//   - STATESYNC
 func CustomReactors(reactors map[string]p2p.Reactor) Option {
 	return func(n *Node) {
 		for name, reactor := range reactors {
@@ -760,6 +763,84 @@ func NewNode(config *cfg.Config,
 		return nil, err
 	}
 
+	var builder *mekabuild.Builder
+	{
+		const (
+			apiTimeoutEnvVar  = "MEKATEK_BUILDER_API_TIMEOUT"
+			paymentAddrEnvVar = "MEKATEK_BUILDER_API_PAYMENT_ADDRESS"
+			chainIDEnvVar     = "MEKATEK_BUILDER_API_CHAIN_ID"
+		)
+		var (
+			apiURL         = mekabuild.GetBuilderAPIURL()
+			apiTimeout     = parseDurationDefault(os.Getenv(apiTimeoutEnvVar), 3*time.Second)
+			validatorAddr  = pubKey.Address().String()
+			paymentAddr    = os.Getenv(paymentAddrEnvVar)
+			envChainID     = os.Getenv(chainIDEnvVar)
+			configChainID  = config.ChainID()
+			genesisChainID = getGenesisChainID(genesisDocProvider)
+			chainID        = firstNonEmpty(envChainID, configChainID, genesisChainID)
+		)
+
+		logger.Debug("Mekatek builder API",
+			"api_url", apiURL.String(),
+			apiTimeoutEnvVar, apiTimeout,
+			paymentAddrEnvVar, paymentAddr,
+			chainIDEnvVar, envChainID,
+			"config_chain_id", configChainID,
+			"genesis_chain_id", genesisChainID,
+		)
+
+		logger.Info("Mekatek builder API",
+			"api_url", apiURL.String(),
+			"timeout", apiTimeout.String(),
+			"chain_id", chainID,
+			"payment_address", paymentAddr,
+			"validator_address", validatorAddr,
+		)
+
+		switch {
+		case chainID == "":
+			logger.Error(
+				"Mekatek builder API disabled",
+				"why", "unable to deduce chain ID",
+				"fix", fmt.Sprintf("set the %s env var", chainIDEnvVar),
+			)
+
+		case paymentAddr == "":
+			logger.Error(
+				"Mekatek builder API disabled",
+				"why", "payment address for this validator not set",
+				"fix", fmt.Sprintf("set the %s env var to a valid Bech32 address", paymentAddrEnvVar),
+			)
+
+		default:
+			b := mekabuild.NewBuilder(
+				&http.Client{Timeout: apiTimeout},
+				apiURL,
+				privValidator,
+				chainID,
+				validatorAddr,
+				paymentAddr,
+			)
+
+			switch err := b.Register(context.Background()); {
+			case err == nil:
+				logger.Info("Mekatek builder API registration successful")
+			case err != nil:
+				logger.Error("initial Mekatek builder API registration failed, will be retried until successful", "err", err)
+			}
+
+			switch {
+			case mekabuild.DryRunMode():
+				logger.Info("Mekatek builder API in DRY-RUN mode: will make and log builder API requests, but propose normal blocks")
+			default:
+				logger.Info("Mekatek builder API in LIVE mode: will propose blocks returned from build requests")
+			}
+
+			builder = b
+		}
+	}
+
 	// make block executor for consensus and blockchain reactors to execute blocks
 	blockExec := sm.NewBlockExecutor(
 		stateStore,
@@ -768,6 +849,7 @@ func NewNode(config *cfg.Config,
 		mempool,
 		evidencePool,
 		sm.BlockExecutorWithMetrics(smMetrics),
+		sm.BlockExecutorWithBuilder(builder),
 	)
 
 	// Make BlockchainReactor. Don't start fast sync if we're doing a state sync first.
@@ -890,6 +972,13 @@ func NewNode(config *cfg.Config,
 	}
 
 	return node, nil
+}
+
+func parseDurationDefault(s string, def time.Duration) time.Duration {
+	if d, err := time.ParseDuration(s); err == nil {
+		return d
+	}
+	return def
 }
 
 // OnStart starts the Node. It implements service.Service.
@@ -1462,4 +1551,20 @@ func splitAndTrimEmpty(s, sep, cutset string) []string {
 		}
 	}
 	return nonEmptyStrings
+}
+
+func getGenesisChainID(p GenesisDocProvider) string {
+	if d, err := p(); err == nil {
+		return d.ChainID
+	}
+	return ""
+}
+
+func firstNonEmpty(strs ...string) string {
+	for _, s := range strs {
+		if s != "" {
+			return s
+		}
+	}
+	return ""
 }

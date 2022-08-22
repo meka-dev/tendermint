@@ -3,6 +3,7 @@ package privval
 import (
 	"fmt"
 
+	"github.com/meka-dev/mekatek-go/mekabuild"
 	"github.com/tendermint/tendermint/crypto"
 	cryptoenc "github.com/tendermint/tendermint/crypto/encoding"
 	cryptoproto "github.com/tendermint/tendermint/proto/tendermint/crypto"
@@ -85,6 +86,56 @@ func DefaultValidationRequestHandler(
 		}
 	case *privvalproto.Message_PingRequest:
 		err, res = nil, mustWrapMsg(&privvalproto.PingResponse{})
+
+	case *privvalproto.Message_SignMekatekBuildBlockRequest:
+		sr := r.SignMekatekBuildBlockRequest
+		if sr.ChainID != chainID {
+			err := fmt.Errorf("unable to sign Mekatek build block request: chain ID: want %s, have %s", sr.ChainID, chainID)
+			res = mustWrapMsg(&privvalproto.SignMekatekBuildBlockRequestResponse{
+				Error: &privvalproto.RemoteSignerError{Description: err.Error()},
+			})
+			return res, err
+		}
+
+		msr := &mekabuild.BuildBlockRequest{
+			ChainID:          sr.ChainID,
+			Height:           sr.Height,
+			ValidatorAddress: sr.ValidatorAddr,
+			MaxBytes:         sr.MaxBytes,
+			MaxGas:           sr.MaxGas,
+			Txs:              sr.Txs,
+		}
+
+		err := privVal.SignMekatekBuildBlockRequest(msr)
+		if err != nil {
+			res = mustWrapMsg(&privvalproto.SignMekatekBuildBlockRequestResponse{
+				Error: &privvalproto.RemoteSignerError{Description: err.Error()}})
+		} else {
+			res = mustWrapMsg(&privvalproto.SignMekatekBuildBlockRequestResponse{
+				Signature: msr.Signature,
+			})
+		}
+
+	case *privvalproto.Message_SignMekatekRegisterChallengeRequest:
+		sr := r.SignMekatekRegisterChallengeRequest
+		if sr.ChainID != chainID {
+			err := fmt.Errorf("unable to sign Mekatek register challenge: chain ID: want %s, have %s", sr.ChainID, chainID)
+			res = mustWrapMsg(&privvalproto.SignMekatekRegisterChallengeResponse{
+				Error: &privvalproto.RemoteSignerError{Description: err.Error()},
+			})
+			return res, err
+		}
+
+		c := &mekabuild.RegisterChallenge{Bytes: sr.Challenge}
+
+		if err := privVal.SignMekatekRegisterChallenge(c); err != nil {
+			res = mustWrapMsg(&privvalproto.SignMekatekRegisterChallengeResponse{
+				Error: &privvalproto.RemoteSignerError{Description: err.Error()}})
+		} else {
+			res = mustWrapMsg(&privvalproto.SignMekatekRegisterChallengeResponse{
+				Signature: c.Signature,
+			})
+		}
 
 	default:
 		err = fmt.Errorf("unknown msg: %v", r)

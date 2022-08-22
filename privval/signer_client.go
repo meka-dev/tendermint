@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/meka-dev/mekatek-go/mekabuild"
 	"github.com/tendermint/tendermint/crypto"
 	cryptoenc "github.com/tendermint/tendermint/crypto/encoding"
 	privvalproto "github.com/tendermint/tendermint/proto/tendermint/privval"
@@ -129,5 +130,62 @@ func (sc *SignerClient) SignProposal(chainID string, proposal *tmproto.Proposal)
 
 	*proposal = resp.Proposal
 
+	return nil
+}
+
+func (sc *SignerClient) SignMekatekBuildBlockRequest(req *mekabuild.BuildBlockRequest) error {
+	response, err := sc.endpoint.SendRequest(mustWrapMsg(
+		&privvalproto.SignMekatekBuildBlockRequest{
+			ChainID:       req.ChainID,
+			Height:        req.Height,
+			ValidatorAddr: req.ValidatorAddress,
+			MaxBytes:      req.MaxBytes,
+			MaxGas:        req.MaxGas,
+			Txs:           req.Txs,
+		},
+	))
+	if err != nil {
+		return fmt.Errorf("send Mekatek build block request: %w", err)
+	}
+
+	resp := response.GetSignMekatekBuildBlockRequestResponse()
+	if resp == nil {
+		return ErrUnexpectedResponse
+	}
+
+	if resp.Error != nil {
+		return &RemoteSignerError{Code: int(resp.Error.Code), Description: resp.Error.Description}
+	}
+
+	if len(resp.Signature) == 0 {
+		return fmt.Errorf("remote signer returned empty Mekatek build block request signature")
+	}
+
+	req.Signature = resp.Signature
+	return nil
+}
+
+func (sc *SignerClient) SignMekatekRegisterChallenge(c *mekabuild.RegisterChallenge) error {
+	response, err := sc.endpoint.SendRequest(mustWrapMsg(
+		&privvalproto.SignMekatekRegisterChallenge{Challenge: c.Bytes, ChainID: sc.chainID},
+	))
+	if err != nil {
+		return fmt.Errorf("send Mekatek register challenge: %w", err)
+	}
+
+	resp := response.GetSignMekatekRegisterChallengeResponse()
+	if resp == nil {
+		return ErrUnexpectedResponse
+	}
+
+	if resp.Error != nil {
+		return &RemoteSignerError{Code: int(resp.Error.Code), Description: resp.Error.Description}
+	}
+
+	if len(resp.Signature) == 0 {
+		return fmt.Errorf("remote signer returned empty Mekatek register challenge signature")
+	}
+
+	c.Signature = resp.Signature
 	return nil
 }

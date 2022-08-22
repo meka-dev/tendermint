@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/gogo/protobuf/proto"
+	"github.com/meka-dev/mekatek-go/mekabuild"
 
 	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/crypto/ed25519"
@@ -264,6 +265,28 @@ func (pv *FilePV) SignProposal(chainID string, proposal *tmproto.Proposal) error
 	if err := pv.signProposal(chainID, proposal); err != nil {
 		return fmt.Errorf("error signing proposal: %v", err)
 	}
+	return nil
+}
+
+func (pv *FilePV) SignMekatekBuildBlockRequest(req *mekabuild.BuildBlockRequest) error {
+	signature, err := pv.Key.PrivKey.Sign(req.SignableBytes())
+	if err != nil {
+		return fmt.Errorf("sign Mekatek build block request: %w", err)
+	}
+
+	req.Signature = signature
+
+	return nil
+}
+
+func (pv *FilePV) SignMekatekRegisterChallenge(c *mekabuild.RegisterChallenge) error {
+	signature, err := pv.Key.PrivKey.Sign(c.SignableBytes())
+	if err != nil {
+		return fmt.Errorf("sign Mekatek registration challenge: %w", err)
+	}
+
+	c.Signature = signature
+
 	return nil
 }
 

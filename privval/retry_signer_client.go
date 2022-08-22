@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/meka-dev/mekatek-go/mekabuild"
 	"github.com/tendermint/tendermint/crypto"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	"github.com/tendermint/tendermint/types"
@@ -93,4 +94,34 @@ func (sc *RetrySignerClient) SignProposal(chainID string, proposal *tmproto.Prop
 		time.Sleep(sc.timeout)
 	}
 	return fmt.Errorf("exhausted all attempts to sign proposal: %w", err)
+}
+
+func (sc *RetrySignerClient) SignMekatekBuildBlockRequest(req *mekabuild.BuildBlockRequest) (err error) {
+	for i := 0; i < sc.retries || sc.retries == 0; i++ {
+		err = sc.next.SignMekatekBuildBlockRequest(req)
+		if err == nil {
+			return nil
+		}
+		// If remote signer errors, we don't retry.
+		if _, ok := err.(*RemoteSignerError); ok {
+			return err
+		}
+		time.Sleep(sc.timeout)
+	}
+	return fmt.Errorf("exhausted all attempts to sign build block request: %w", err)
+}
+
+func (sc *RetrySignerClient) SignMekatekRegisterChallenge(c *mekabuild.RegisterChallenge) (err error) {
+	for i := 0; i < sc.retries || sc.retries == 0; i++ {
+		err = sc.next.SignMekatekRegisterChallenge(c)
+		if err == nil {
+			return nil
+		}
+		// If remote signer errors, we don't retry.
+		if _, ok := err.(*RemoteSignerError); ok {
+			return err
+		}
+		time.Sleep(sc.timeout)
+	}
+	return fmt.Errorf("exhausted all attempts to sign register challenge: %w", err)
 }

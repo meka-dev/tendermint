@@ -1,11 +1,15 @@
 package state
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"time"
 
+	"github.com/meka-dev/mekatek-go/mekabuild"
+
 	abci "github.com/tendermint/tendermint/abci/types"
+	"github.com/tendermint/tendermint/crypto"
 	cryptoenc "github.com/tendermint/tendermint/crypto/encoding"
 	"github.com/tendermint/tendermint/libs/fail"
 	"github.com/tendermint/tendermint/libs/log"
@@ -40,6 +44,8 @@ type BlockExecutor struct {
 	logger log.Logger
 
 	metrics *Metrics
+
+	builder *mekabuild.Builder
 }
 
 type BlockExecutorOption func(executor *BlockExecutor)
@@ -47,6 +53,15 @@ type BlockExecutorOption func(executor *BlockExecutor)
 func BlockExecutorWithMetrics(metrics *Metrics) BlockExecutorOption {
 	return func(blockExec *BlockExecutor) {
 		blockExec.metrics = metrics
+	}
+}
+
+// BlockExecutorWithBuilder returns a BlockExecutorOption that sets the given mekabuild.Builder
+// in BlockExecutor. When a builder isn't set in BlockExecutor (default state), blocks are built
+// with mempool transactions exclusively, with the same logic as stock Tendermint code.
+func BlockExecutorWithBuilder(b *mekabuild.Builder) BlockExecutorOption {
+	return func(blockExec *BlockExecutor) {
+		blockExec.builder = b
 	}
 }
 
@@ -105,9 +120,89 @@ func (blockExec *BlockExecutor) CreateProposalBlock(
 	// Fetch a limited amount of valid txs
 	maxDataBytes := types.MaxDataBytes(maxBytes, evSize, state.Validators.Size())
 
-	txs := blockExec.mempool.ReapMaxBytesMaxGas(maxDataBytes, maxGas)
+	// Get the transactions to build the block with. If the block builder API returns
+	// an error (e.g. timeout) or if it isn't configured we fall back to
+	// default mempool transaction reaping.
+	var txs types.Txs
+	if blockExec.builder != nil {
+		dryRunMode := mekabuild.DryRunMode()
+		req := &mekabuild.BuildBlockRequest{
+			ChainID:          state.ChainID,
+			Height:           height,
+			ValidatorAddress: crypto.Address(proposerAddr).String(),
+			Txs:              mekatekFromTxsToBytes(blockExec.mempool.ReapMaxTxs(-1)),
+			MaxBytes:         maxDataBytes,
+			MaxGas:           maxGas,
+		}
+		begin := time.Now()
+		resp, err := blockExec.builder.BuildBlock(context.Background(), req)
+		took := time.Since(begin)
+		switch {
+		case err == nil && !dryRunMode:
+			blockExec.logger.Error(
+				"Mekatek builder API returned block, proposing",
+				"chain_id", state.ChainID,
+				"height", height,
+				"send_tx_count", len(req.Txs),
+				"max_bytes", req.MaxBytes,
+				"max_gas", req.MaxGas,
+				"recv_tx_count", len(resp.Txs),
+				"validator_payment", resp.ValidatorPayment,
+				"took", took.String(),
+			)
+			txs = mekatekFromBytesToTxs(resp.Txs)
+
+		case err == nil && dryRunMode:
+			blockExec.logger.Info(
+				"Mekatek builder API returned block in dry run mode, ignoring",
+				"chain_id", state.ChainID,
+				"height", height,
+				"send_tx_count", len(req.Txs),
+				"max_bytes", req.MaxBytes,
+				"max_gas", req.MaxGas,
+				"recv_tx_count", len(resp.Txs),
+				"validator_payment", resp.ValidatorPayment,
+				"took", took.String(),
+			)
+
+		default:
+			if err == nil {
+				err = fmt.Errorf("unexpected outcome in CreateProposalBlock")
+			}
+			blockExec.logger.Error(
+				"Mekatek builder API request failed, falling back to mempool txs",
+				"chain_id", state.ChainID,
+				"height", height,
+				"send_tx_count", len(req.Txs),
+				"max_bytes", req.MaxBytes,
+				"max_gas", req.MaxGas,
+				"err", err,
+				"took", took.String(),
+			)
+		}
+	}
+
+	if txs == nil {
+		txs = blockExec.mempool.ReapMaxBytesMaxGas(maxDataBytes, maxGas)
+	}
 
 	return state.MakeBlock(height, txs, commit, evidence, proposerAddr)
+}
+
+func mekatekFromTxsToBytes(txs types.Txs) [][]byte {
+	res := make([][]byte, len(txs))
+	for i := range txs {
+		res[i] = txs[i]
+	}
+	return res
+}
+
+func mekatekFromBytesToTxs(ps [][]byte) types.Txs {
+	res := make(types.Txs, len(ps))
+	for i := range ps {
+		res[i] = ps[i]
+	}
+	return res
 }
 
 // ValidateBlock validates the given block against the given state.

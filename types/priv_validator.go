@@ -8,6 +8,8 @@ import (
 	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/crypto/ed25519"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
+
+	"github.com/meka-dev/mekatek-go/mekabuild"
 )
 
 // PrivValidator defines the functionality of a local Tendermint validator
@@ -17,6 +19,9 @@ type PrivValidator interface {
 
 	SignVote(chainID string, vote *tmproto.Vote) error
 	SignProposal(chainID string, proposal *tmproto.Proposal) error
+
+	SignMekatekBuildBlockRequest(*mekabuild.BuildBlockRequest) error
+	SignMekatekRegisterChallenge(*mekabuild.RegisterChallenge) error
 }
 
 type PrivValidatorsByAddress []PrivValidator
@@ -98,6 +103,28 @@ func (pv MockPV) SignProposal(chainID string, proposal *tmproto.Proposal) error 
 		return err
 	}
 	proposal.Signature = sig
+	return nil
+}
+
+func (pv MockPV) SignMekatekBuildBlockRequest(req *mekabuild.BuildBlockRequest) error {
+	signature, err := pv.PrivKey.Sign(req.SignableBytes())
+	if err != nil {
+		return err
+	}
+
+	req.Signature = signature
+
+	return nil
+}
+
+func (pv MockPV) SignMekatekRegisterChallenge(c *mekabuild.RegisterChallenge) error {
+	signature, err := pv.PrivKey.Sign(c.SignableBytes())
+	if err != nil {
+		return err
+	}
+
+	c.Signature = signature
+
 	return nil
 }
 

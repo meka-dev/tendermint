@@ -62,15 +62,48 @@ message PingRequest {}
 // PingResponse is a response to confirm that the connection is alive.
 message PingResponse {}
 
+// SignMekatekBuildBlockRequest is a request to sign a MektatekBuildBlockRequest
+message SignMekatekBuildBlockRequest {
+  string         chain_id       = 1 [(gogoproto.customname) = "ChainID"];
+  int64          height         = 2;
+  string         validator_addr = 3;
+  int64          max_bytes      = 4;
+  int64          max_gas        = 5;
+  repeated bytes txs            = 6;
+}
+
+// SignMekatekBuildBlockRequestResponse is response containing the signature of a SignMekatekBuildBlockRequest or an error
+message SignMekatekBuildBlockRequestResponse {
+  bytes             signature = 1;
+  RemoteSignerError error     = 2;
+}
+
+// SignMekatekRegisterChallenge is a request to sign a MektatekRegisterChallenge
+message SignMekatekRegisterChallenge {
+  bytes  challenge = 1;
+  string chain_id  = 2 [(gogoproto.customname) = "ChainID"];
+}
+
+// SignMekatekRegisterChallengeResponse is response containing the signature of a SignMekatekRegisterChallenge or an error
+message SignMekatekRegisterChallengeResponse {
+  bytes             signature = 1;
+  RemoteSignerError error     = 2;
+}
+
 message Message {
   oneof sum {
-    PubKeyRequest          pub_key_request          = 1;
-    PubKeyResponse         pub_key_response         = 2;
-    SignVoteRequest        sign_vote_request        = 3;
-    SignedVoteResponse     signed_vote_response     = 4;
-    SignProposalRequest    sign_proposal_request    = 5;
-    SignedProposalResponse signed_proposal_response = 6;
-    PingRequest            ping_request             = 7;
-    PingResponse           ping_response            = 8;
+    PubKeyRequest                   pub_key_request                     = 1;
+    PubKeyResponse                  pub_key_response                    = 2;
+    SignVoteRequest                 sign_vote_request                   = 3;
+    SignedVoteResponse              signed_vote_response                = 4;
+    SignProposalRequest             sign_proposal_request               = 5;
+    SignedProposalResponse          signed_proposal_response            = 6;
+    PingRequest                     ping_request                        = 7;
+    PingResponse                    ping_response                       = 8;
+
+    SignMekatekBuildBlockRequest          sign_mekatek_build_block_request          = 9;
+    SignMekatekBuildBlockRequestResponse  sign_mekatek_build_block_request_response = 10;
+    SignMekatekRegisterChallenge          sign_mekatek_register_challenge_request   = 11;
+    SignMekatekRegisterChallengeResponse  sign_mekatek_register_challenge_response  = 12;
   }
 }

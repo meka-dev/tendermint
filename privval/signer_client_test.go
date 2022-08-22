@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/meka-dev/mekatek-go/mekabuild"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -435,5 +436,71 @@ func TestSignerUnexpectedResponse(t *testing.T) {
 
 		e := tc.signerClient.SignVote(tc.chainID, want.ToProto())
 		assert.EqualError(t, e, "empty response")
+	}
+}
+
+func TestSignMekatekBuildBlockRequest(t *testing.T) {
+	for _, tc := range getSignerTestCases(t) {
+		tc := tc
+		t.Cleanup(func() {
+			if err := tc.signerServer.Stop(); err != nil {
+				t.Error(err)
+			}
+		})
+		t.Cleanup(func() {
+			if err := tc.signerClient.Close(); err != nil {
+				t.Error(err)
+			}
+		})
+
+		want := mekabuild.BuildBlockRequest{
+			ChainID:          tc.chainID,
+			Height:           1234,
+			ValidatorAddress: "foobar",
+			MaxBytes:         4321,
+			MaxGas:           9000,
+			Txs: [][]byte{
+				[]byte(`send the moneyz`),
+				[]byte(`to the good place`),
+			},
+		}
+
+		have := want
+
+		err := tc.mockPV.SignMekatekBuildBlockRequest(&want)
+		require.NoError(t, err)
+
+		err = tc.signerClient.SignMekatekBuildBlockRequest(&have)
+		require.NoError(t, err)
+
+		assert.Equal(t, want, have)
+	}
+}
+
+func TestSignMekatekRegisterChallengeRequest(t *testing.T) {
+	for _, tc := range getSignerTestCases(t) {
+		tc := tc
+		t.Cleanup(func() {
+			if err := tc.signerServer.Stop(); err != nil {
+				t.Error(err)
+			}
+		})
+		t.Cleanup(func() {
+			if err := tc.signerClient.Close(); err != nil {
+				t.Error(err)
+			}
+		})
+
+		want := mekabuild.RegisterChallenge{Bytes: []byte("foobar")}
+
+		have := want
+
+		err := tc.mockPV.SignMekatekRegisterChallenge(&want)
+		require.NoError(t, err)
+
+		err = tc.signerClient.SignMekatekRegisterChallenge(&have)
+		require.NoError(t, err)
+
+		assert.Equal(t, want, have)
 	}
 }
