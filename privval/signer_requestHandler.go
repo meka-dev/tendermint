@@ -86,6 +86,26 @@ func DefaultValidationRequestHandler(
 	case *privvalproto.Message_PingRequest:
 		err, res = nil, mustWrapMsg(&privvalproto.PingResponse{})
 
+	case *privvalproto.Message_SignMekatekBuildRequest:
+		b := r.SignMekatekBuildRequest.Build
+		if b.ChainID != chainID {
+			err := fmt.Errorf("unable to sign Mekatek build: chain ID: want %s, have %s", b.ChainID, chainID)
+			res = mustWrapMsg(&privvalproto.SignedMekatekBuildResponse{
+				Error: &privvalproto.RemoteSignerError{Description: err.Error()},
+			})
+			return res, err
+		}
+
+		err := privVal.SignMekatekBuild(b)
+		if err != nil {
+			res = mustWrapMsg(&privvalproto.SignedMekatekBuildResponse{
+				Error: &privvalproto.RemoteSignerError{Description: err.Error()}})
+		} else {
+			res = mustWrapMsg(&privvalproto.SignedMekatekBuildResponse{
+				Build: *b,
+			})
+		}
+
 	default:
 		err = fmt.Errorf("unknown msg: %v", r)
 	}
