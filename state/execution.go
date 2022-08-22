@@ -1,11 +1,17 @@
 package state
 
 import (
+	"context"
+	"encoding/hex"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
+	"github.com/meka-dev/mekatek-go/mekabuild"
+
 	abci "github.com/tendermint/tendermint/abci/types"
+	"github.com/tendermint/tendermint/crypto"
 	cryptoenc "github.com/tendermint/tendermint/crypto/encoding"
 	"github.com/tendermint/tendermint/libs/fail"
 	"github.com/tendermint/tendermint/libs/log"
@@ -40,6 +46,8 @@ type BlockExecutor struct {
 	logger log.Logger
 
 	metrics *Metrics
+
+	builder *mekabuild.Builder
 }
 
 type BlockExecutorOption func(executor *BlockExecutor)
@@ -47,6 +55,15 @@ type BlockExecutorOption func(executor *BlockExecutor)
 func BlockExecutorWithMetrics(metrics *Metrics) BlockExecutorOption {
 	return func(blockExec *BlockExecutor) {
 		blockExec.metrics = metrics
+	}
+}
+
+// BlockExecutorWithBuilder returns a BlockExecutorOption that sets the given mekabuild.Builder
+// in BlockExecutor. When a builder isn't set in BlockExecutor (default state), blocks are built
+// with mempool transactions exclusively, with the same logic as stock Tendermint code.
+func BlockExecutorWithBuilder(b *mekabuild.Builder) BlockExecutorOption {
+	return func(blockExec *BlockExecutor) {
+		blockExec.builder = b
 	}
 }
 
@@ -105,9 +122,114 @@ func (blockExec *BlockExecutor) CreateProposalBlock(
 	// Fetch a limited amount of valid txs
 	maxDataBytes := types.MaxDataBytes(maxBytes, evSize, state.Validators.Size())
 
+	// Get the transactions to build the block with. If the block builder API returns
+	// an error (e.g. timeout) or if it isn't configured we fall back to
+	// default mempool transaction reaping.
 	txs := blockExec.mempool.ReapMaxBytesMaxGas(maxDataBytes, maxGas)
+	if blockExec.builder == nil { // block builder not configured
+		blockExec.logger.Debug("Mekatek builder API disabled, using normal mempool txs")
+		return state.MakeBlock(height, txs, commit, evidence, proposerAddr)
+	}
 
-	return state.MakeBlock(height, txs, commit, evidence, proposerAddr)
+	req := &mekabuild.BuildBlockRequest{
+		ChainID:          state.ChainID,
+		Height:           height,
+		ValidatorAddress: crypto.Address(proposerAddr).String(),
+		Txs:              mekatekFromTxsToBytes(blockExec.mempool.ReapMaxTxs(-1)),
+		MaxBytes:         maxDataBytes,
+		MaxGas:           maxGas,
+	}
+
+	blockExec.logger.Info(
+		"Mekatek builder API request",
+		"chain_id", state.ChainID,
+		"height", height,
+		"send_tx_count", len(req.Txs),
+		"max_bytes", req.MaxBytes,
+		"max_gas", req.MaxGas,
+	)
+
+	begin := time.Now()
+	resp, err := blockExec.builder.BuildBlock(context.Background(), req)
+	took := time.Since(begin)
+	if err != nil {
+		blockExec.logger.Error(
+			"Mekatek builder API error, falling back to mempool txs",
+			"took", took.String(),
+			"err", err,
+		)
+		return state.MakeBlock(height, txs, commit, evidence, proposerAddr)
+	}
+
+	blockExec.logger.Info(
+		"Mekatek builder API response",
+		"recv_tx_count", len(resp.Txs),
+		"validator_payment", resp.ValidatorPayment,
+		"took", took.String(),
+	)
+
+	builderTxs := mekatekFromBytesToTxs(resp.Txs)
+	added, moved, ignored, same := diff(txs, builderTxs)
+	blockExec.logger.Info(
+		"Mekatek builder API block txs",
+		"added", len(added),
+		"moved", len(moved),
+		"ignored", len(ignored),
+		"same", len(same),
+	)
+
+	if mekabuild.DryRunMode() {
+		blockExec.logger.Info("Mekatek builder API dry run mode, falling back to mempool txs")
+		return state.MakeBlock(height, txs, commit, evidence, proposerAddr)
+	}
+
+	return state.MakeBlock(height, builderTxs, commit, evidence, proposerAddr)
+}
+
+// diff returns the added, moved, ignored and same tx hashes in after compared to before.
+func diff(before, after types.Txs) (added, moved, ignored, same []string) {
+	afterSet := make(map[string]int, len(after))
+	for i, tx := range after {
+		afterSet[strings.ToUpper(hex.EncodeToString(tx.Hash()))] = i
+	}
+
+	for i, tx := range before {
+		txHash := strings.ToUpper(hex.EncodeToString(tx.Hash()))
+
+		switch j, ok := afterSet[txHash]; {
+		case !ok:
+			ignored = append(ignored, txHash)
+			continue
+		case i != j:
+			moved = append(moved, txHash)
+		default: // i == j
+			same = append(same, txHash)
+		}
+
+		delete(afterSet, txHash)
+	}
+
+	for txHash := range afterSet {
+		added = append(added, txHash)
+	}
+
+	return added, moved, ignored, same
+}
+
+func mekatekFromTxsToBytes(txs types.Txs) [][]byte {
+	res := make([][]byte, len(txs))
+	for i := range txs {
+		res[i] = txs[i]
+	}
+	return res
+}
+
+func mekatekFromBytesToTxs(ps [][]byte) types.Txs {
+	res := make(types.Txs, len(ps))
+	for i := range ps {
+		res[i] = ps[i]
+	}
+	return res
 }
 
 // ValidateBlock validates the given block against the given state.
