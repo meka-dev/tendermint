@@ -437,3 +437,66 @@ func TestSignerUnexpectedResponse(t *testing.T) {
 		assert.EqualError(t, e, "empty response")
 	}
 }
+
+func TestSignMekatekBuild(t *testing.T) {
+	for _, tc := range getSignerTestCases(t) {
+		tc := tc
+		t.Cleanup(func() {
+			if err := tc.signerServer.Stop(); err != nil {
+				t.Error(err)
+			}
+		})
+		t.Cleanup(func() {
+			if err := tc.signerClient.Close(); err != nil {
+				t.Error(err)
+			}
+		})
+
+		want := privvalproto.MekatekBuild{
+			ChainID:       tc.chainID,
+			Height:        1234,
+			ValidatorAddr: "foobar",
+			MaxBytes:      4321,
+			MaxGas:        9000,
+			TxsHash:       []byte("big old hash"),
+		}
+
+		have := want
+
+		err := tc.mockPV.SignMekatekBuild(&want)
+		require.NoError(t, err)
+
+		err = tc.signerClient.SignMekatekBuild(&have)
+		require.NoError(t, err)
+
+		assert.Equal(t, want, have)
+	}
+}
+
+func TestSignMekatekChallengeRequest(t *testing.T) {
+	for _, tc := range getSignerTestCases(t) {
+		tc := tc
+		t.Cleanup(func() {
+			if err := tc.signerServer.Stop(); err != nil {
+				t.Error(err)
+			}
+		})
+		t.Cleanup(func() {
+			if err := tc.signerClient.Close(); err != nil {
+				t.Error(err)
+			}
+		})
+
+		want := privvalproto.MekatekChallenge{ChainID: tc.chainID, Challenge: []byte("foobar")}
+
+		have := want
+
+		err := tc.mockPV.SignMekatekChallenge(&want)
+		require.NoError(t, err)
+
+		err = tc.signerClient.SignMekatekChallenge(&have)
+		require.NoError(t, err)
+
+		assert.Equal(t, want, have)
+	}
+}
