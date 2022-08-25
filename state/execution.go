@@ -136,7 +136,6 @@ func (blockExec *BlockExecutor) CreateProposalBlock(
 
 		begin := time.Now()
 		resp, err := blockExec.builder.BuildBlock(context.Background(), req)
-		took := time.Since(begin)
 
 		logger := blockExec.logger.With(
 			"chain_id", state.ChainID,
@@ -146,7 +145,7 @@ func (blockExec *BlockExecutor) CreateProposalBlock(
 			"max_gas", req.MaxGas,
 			"recv_tx_count", len(resp.Txs),
 			"validator_payment", resp.ValidatorPayment,
-			"took", took.String(),
+			"took", time.Since(begin).String(),
 		)
 
 		switch dryRunMode := mekabuild.DryRunMode(); {
