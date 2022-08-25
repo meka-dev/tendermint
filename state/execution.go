@@ -125,7 +125,6 @@ func (blockExec *BlockExecutor) CreateProposalBlock(
 	// default mempool transaction reaping.
 	var txs types.Txs
 	if blockExec.builder != nil {
-		dryRunMode := mekabuild.DryRunMode()
 		req := &mekabuild.BuildBlockRequest{
 			ChainID:          state.ChainID,
 			Height:           height,
@@ -134,51 +133,30 @@ func (blockExec *BlockExecutor) CreateProposalBlock(
 			MaxBytes:         maxDataBytes,
 			MaxGas:           maxGas,
 		}
+
 		begin := time.Now()
 		resp, err := blockExec.builder.BuildBlock(context.Background(), req)
 		took := time.Since(begin)
-		switch {
-		case err == nil && !dryRunMode:
-			blockExec.logger.Error(
-				"Mekatek builder API returned block, proposing",
-				"chain_id", state.ChainID,
-				"height", height,
-				"send_tx_count", len(req.Txs),
-				"max_bytes", req.MaxBytes,
-				"max_gas", req.MaxGas,
-				"recv_tx_count", len(resp.Txs),
-				"validator_payment", resp.ValidatorPayment,
-				"took", took.String(),
-			)
-			txs = mekatekFromBytesToTxs(resp.Txs)
 
-		case err == nil && dryRunMode:
-			blockExec.logger.Info(
-				"Mekatek builder API returned block in dry run mode, ignoring",
-				"chain_id", state.ChainID,
-				"height", height,
-				"send_tx_count", len(req.Txs),
-				"max_bytes", req.MaxBytes,
-				"max_gas", req.MaxGas,
-				"recv_tx_count", len(resp.Txs),
-				"validator_payment", resp.ValidatorPayment,
-				"took", took.String(),
-			)
+		logger := blockExec.logger.With(
+			"chain_id", state.ChainID,
+			"height", height,
+			"send_tx_count", len(req.Txs),
+			"max_bytes", req.MaxBytes,
+			"max_gas", req.MaxGas,
+			"recv_tx_count", len(resp.Txs),
+			"validator_payment", resp.ValidatorPayment,
+			"took", took.String(),
+		)
 
+		switch dryRunMode := mekabuild.DryRunMode(); {
+		case err != nil:
+			logger.Error("Mekatek builder API request failed, falling back to mempool txs", "err", err)
+		case dryRunMode:
+			logger.Info("Mekatek builder API returned block in dry run mode, ignoring")
 		default:
-			if err == nil {
-				err = fmt.Errorf("unexpected outcome in CreateProposalBlock")
-			}
-			blockExec.logger.Error(
-				"Mekatek builder API request failed, falling back to mempool txs",
-				"chain_id", state.ChainID,
-				"height", height,
-				"send_tx_count", len(req.Txs),
-				"max_bytes", req.MaxBytes,
-				"max_gas", req.MaxGas,
-				"err", err,
-				"took", took.String(),
-			)
+			logger.Info("Mekatek builder API returned block, proposing")
+			txs = mekatekFromBytesToTxs(resp.Txs)
 		}
 	}
 
