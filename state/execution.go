@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/meka-dev/mekatek-go/mekabuild"
@@ -140,6 +141,7 @@ func (blockExec *BlockExecutor) CreateProposalBlock(
 
 	begin := time.Now()
 	resp, err := blockExec.builder.BuildBlock(context.Background(), req)
+	took := time.Since(begin)
 
 	logger := blockExec.logger.With(
 		"chain_id", state.ChainID,
@@ -149,7 +151,7 @@ func (blockExec *BlockExecutor) CreateProposalBlock(
 		"max_gas", req.MaxGas,
 		"recv_tx_count", len(resp.Txs),
 		"validator_payment", resp.ValidatorPayment,
-		"took", time.Since(begin).String(),
+		"took", took,
 	)
 
 	if err != nil {
@@ -168,23 +170,22 @@ func (blockExec *BlockExecutor) CreateProposalBlock(
 
 	if mekabuild.DryRunMode() {
 		logger.Info("Mekatek builder API returned block in dry run mode, ignoring")
-	} else {
-		logger.Info("Mekatek builder API returned block, proposing")
-		txs = builderTxs
+		return state.MakeBlock(height, txs, commit, evidence, proposerAddr)
 	}
 
-	return state.MakeBlock(height, txs, commit, evidence, proposerAddr)
+	logger.Info("Mekatek builder API returned block, proposing")
+	return state.MakeBlock(height, builderTxs, commit, evidence, proposerAddr)
 }
 
 // diff returns the added, moved, ignored and same tx hashes in after compared to before.
 func diff(before, after types.Txs) (added, moved, ignored, same []string) {
-	afterSet := make(map[string]int)
+	afterSet := make(map[string]int, len(after))
 	for i, tx := range after {
-		afterSet[hex.EncodeToString(tx.Hash())] = i
+		afterSet[strings.ToUpper(hex.EncodeToString(tx.Hash()))] = i
 	}
 
 	for i, tx := range before {
-		txHash := hex.EncodeToString(tx.Hash())
+		txHash := strings.ToUpper(hex.EncodeToString(tx.Hash()))
 
 		switch j, ok := afterSet[txHash]; {
 		case !ok:
