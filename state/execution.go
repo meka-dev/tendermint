@@ -2,8 +2,10 @@ package state
 
 import (
 	"context"
+	"encoding/hex"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/meka-dev/mekatek-go/mekabuild"
@@ -123,70 +125,86 @@ func (blockExec *BlockExecutor) CreateProposalBlock(
 	// Get the transactions to build the block with. If the block builder API returns
 	// an error (e.g. timeout) or if it isn't configured we fall back to
 	// default mempool transaction reaping.
-	var txs types.Txs
-	if blockExec.builder != nil {
-		dryRunMode := mekabuild.DryRunMode()
-		req := &mekabuild.BuildBlockRequest{
-			ChainID:          state.ChainID,
-			Height:           height,
-			ValidatorAddress: crypto.Address(proposerAddr).String(),
-			Txs:              mekatekFromTxsToBytes(blockExec.mempool.ReapMaxTxs(-1)),
-			MaxBytes:         maxDataBytes,
-			MaxGas:           maxGas,
-		}
-		begin := time.Now()
-		resp, err := blockExec.builder.BuildBlock(context.Background(), req)
-		took := time.Since(begin)
-		switch {
-		case err == nil && !dryRunMode:
-			blockExec.logger.Error(
-				"Mekatek builder API returned block, proposing",
-				"chain_id", state.ChainID,
-				"height", height,
-				"send_tx_count", len(req.Txs),
-				"max_bytes", req.MaxBytes,
-				"max_gas", req.MaxGas,
-				"recv_tx_count", len(resp.Txs),
-				"validator_payment", resp.ValidatorPayment,
-				"took", took.String(),
-			)
-			txs = mekatekFromBytesToTxs(resp.Txs)
-
-		case err == nil && dryRunMode:
-			blockExec.logger.Info(
-				"Mekatek builder API returned block in dry run mode, ignoring",
-				"chain_id", state.ChainID,
-				"height", height,
-				"send_tx_count", len(req.Txs),
-				"max_bytes", req.MaxBytes,
-				"max_gas", req.MaxGas,
-				"recv_tx_count", len(resp.Txs),
-				"validator_payment", resp.ValidatorPayment,
-				"took", took.String(),
-			)
-
-		default:
-			if err == nil {
-				err = fmt.Errorf("unexpected outcome in CreateProposalBlock")
-			}
-			blockExec.logger.Error(
-				"Mekatek builder API request failed, falling back to mempool txs",
-				"chain_id", state.ChainID,
-				"height", height,
-				"send_tx_count", len(req.Txs),
-				"max_bytes", req.MaxBytes,
-				"max_gas", req.MaxGas,
-				"err", err,
-				"took", took.String(),
-			)
-		}
+	txs := blockExec.mempool.ReapMaxBytesMaxGas(maxDataBytes, maxGas)
+	if blockExec.builder == nil { // block builder not configured
+		return state.MakeBlock(height, txs, commit, evidence, proposerAddr)
 	}
 
-	if txs == nil {
-		txs = blockExec.mempool.ReapMaxBytesMaxGas(maxDataBytes, maxGas)
+	req := &mekabuild.BuildBlockRequest{
+		ChainID:          state.ChainID,
+		Height:           height,
+		ValidatorAddress: crypto.Address(proposerAddr).String(),
+		Txs:              mekatekFromTxsToBytes(blockExec.mempool.ReapMaxTxs(-1)),
+		MaxBytes:         maxDataBytes,
+		MaxGas:           maxGas,
 	}
 
-	return state.MakeBlock(height, txs, commit, evidence, proposerAddr)
+	begin := time.Now()
+	resp, err := blockExec.builder.BuildBlock(context.Background(), req)
+	took := time.Since(begin)
+
+	logger := blockExec.logger.With(
+		"chain_id", state.ChainID,
+		"height", height,
+		"send_tx_count", len(req.Txs),
+		"max_bytes", req.MaxBytes,
+		"max_gas", req.MaxGas,
+		"recv_tx_count", len(resp.Txs),
+		"validator_payment", resp.ValidatorPayment,
+		"took", took,
+	)
+
+	if err != nil {
+		logger.Error("Mekatek builder API request failed, falling back to mempool txs", "err", err)
+		return state.MakeBlock(height, txs, commit, evidence, proposerAddr)
+	}
+
+	builderTxs := mekatekFromBytesToTxs(resp.Txs)
+	added, moved, ignored, same := diff(txs, builderTxs)
+	logger = logger.With(
+		"added_tx_count", len(added),
+		"moved_tx_count", len(moved),
+		"ignored_tx_count", len(ignored),
+		"same_tx_count", len(same),
+	)
+
+	if mekabuild.DryRunMode() {
+		logger.Info("Mekatek builder API returned block in dry run mode, ignoring")
+		return state.MakeBlock(height, txs, commit, evidence, proposerAddr)
+	}
+
+	logger.Info("Mekatek builder API returned block, proposing")
+	return state.MakeBlock(height, builderTxs, commit, evidence, proposerAddr)
+}
+
+// diff returns the added, moved, ignored and same tx hashes in after compared to before.
+func diff(before, after types.Txs) (added, moved, ignored, same []string) {
+	afterSet := make(map[string]int, len(after))
+	for i, tx := range after {
+		afterSet[strings.ToUpper(hex.EncodeToString(tx.Hash()))] = i
+	}
+
+	for i, tx := range before {
+		txHash := strings.ToUpper(hex.EncodeToString(tx.Hash()))
+
+		switch j, ok := afterSet[txHash]; {
+		case !ok:
+			ignored = append(ignored, txHash)
+			continue
+		case i != j:
+			moved = append(moved, txHash)
+		default: // i == j
+			same = append(same, txHash)
+		}
+
+		delete(afterSet, txHash)
+	}
+
+	for txHash := range afterSet {
+		added = append(added, txHash)
+	}
+
+	return added, moved, ignored, same
 }
 
 func mekatekFromTxsToBytes(txs types.Txs) [][]byte {
