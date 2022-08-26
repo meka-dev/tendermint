@@ -23,7 +23,7 @@ the corresponding release tag.
       (<a href="https://github.com/meka-dev/tendermint/compare/v0.34.19...v0.34.19-mekatek">diff</a>)
     </td>
     <td align="center">
-      <strong><a href="https://github.com/meka-dev/tendermint/tree/mekatek/osmosis-v11.0.1-b">mekatek/osmosis-v11.0.1-a</a></strong>
+      <strong><a href="https://github.com/meka-dev/tendermint/tree/mekatek/osmosis-v11.0.1-b">mekatek/osmosis-v11.0.1-b</a></strong>
       (<a href="https://github.com/meka-dev/tendermint/compare/v0.34.19...mekatek/osmosis-v11.0.1-b">diff</a>)
     </td>
   </tr>
