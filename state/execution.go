@@ -149,7 +149,7 @@ func (blockExec *BlockExecutor) CreateProposalBlock(
 		"send_tx_count", len(req.Txs),
 		"max_bytes", req.MaxBytes,
 		"max_gas", req.MaxGas,
-		"took", took,
+		"took", took.String(),
 	)
 
 	if err != nil {
