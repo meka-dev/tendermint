@@ -149,8 +149,6 @@ func (blockExec *BlockExecutor) CreateProposalBlock(
 		"send_tx_count", len(req.Txs),
 		"max_bytes", req.MaxBytes,
 		"max_gas", req.MaxGas,
-		"recv_tx_count", len(resp.Txs),
-		"validator_payment", resp.ValidatorPayment,
 		"took", took,
 	)
 
@@ -162,6 +160,8 @@ func (blockExec *BlockExecutor) CreateProposalBlock(
 	builderTxs := mekatekFromBytesToTxs(resp.Txs)
 	added, moved, ignored, same := diff(txs, builderTxs)
 	logger = logger.With(
+		"recv_tx_count", len(resp.Txs),
+		"validator_payment", resp.ValidatorPayment,
 		"added_tx_count", len(added),
 		"moved_tx_count", len(moved),
 		"ignored_tx_count", len(ignored),
