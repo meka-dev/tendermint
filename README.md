@@ -23,8 +23,8 @@ the corresponding release tag.
       (<a href="https://github.com/meka-dev/tendermint/compare/v0.34.19...v0.34.19-mekatek">diff</a>)
     </td>
     <td align="center">
-      <strong><a href="https://github.com/meka-dev/tendermint/tree/osmosis-v11.0.1-a">osmosis-v11.0.1-a</a></strong>
-      (<a href="https://github.com/meka-dev/tendermint/compare/v0.34.19...osmosis-v11.0.1-a">diff</a>)
+      <strong><a href="https://github.com/meka-dev/tendermint/tree/mekatek/osmosis-v11.0.1-b">mekatek/osmosis-v11.0.1-a</a></strong>
+      (<a href="https://github.com/meka-dev/tendermint/compare/v0.34.19...mekatek/osmosis-v11.0.1-b">diff</a>)
     </td>
   </tr>
 </table>
@@ -35,7 +35,7 @@ Here is an example of how to build Osmosis.
 git clone https://github.com/osmosis-labs/osmosis
 cd osmosis
 git checkout v11.0.1
-go mod edit -replace=github.com/tendermint/tendermint=github.com/meka-dev/tendermint@osmosis-v11.0.1-a
+go mod edit -replace=github.com/tendermint/tendermint=github.com/meka-dev/tendermint@mekatek/osmosis-v11.0.1-b
 go mod tidy
 make install
 ```
