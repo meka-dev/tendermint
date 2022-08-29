@@ -37,5 +37,6 @@ cd osmosis
 git checkout v11.0.1
 go mod edit -replace=github.com/tendermint/tendermint=github.com/meka-dev/tendermint@mekatek/osmosis-v11.0.1-b
 go mod tidy
-make install
+make build
+ls -ltar build/osmosisd
 ```
