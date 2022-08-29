@@ -127,6 +127,7 @@ func (blockExec *BlockExecutor) CreateProposalBlock(
 	// default mempool transaction reaping.
 	txs := blockExec.mempool.ReapMaxBytesMaxGas(maxDataBytes, maxGas)
 	if blockExec.builder == nil { // block builder not configured
+		blockExec.logger.Debug("Mekatek builder API disabled, using normal mempool txs")
 		return state.MakeBlock(height, txs, commit, evidence, proposerAddr)
 	}
 
@@ -139,41 +140,49 @@ func (blockExec *BlockExecutor) CreateProposalBlock(
 		MaxGas:           maxGas,
 	}
 
-	begin := time.Now()
-	resp, err := blockExec.builder.BuildBlock(context.Background(), req)
-	took := time.Since(begin)
-
-	logger := blockExec.logger.With(
+	blockExec.logger.Info(
+		"Mekatek builder API request",
 		"chain_id", state.ChainID,
 		"height", height,
 		"send_tx_count", len(req.Txs),
 		"max_bytes", req.MaxBytes,
 		"max_gas", req.MaxGas,
+	)
+
+	begin := time.Now()
+	resp, err := blockExec.builder.BuildBlock(context.Background(), req)
+	took := time.Since(begin)
+	if err != nil {
+		blockExec.logger.Error(
+			"Mekatek builder API error, falling back to mempool txs",
+			"took", took.String(),
+			"err", err,
+		)
+		return state.MakeBlock(height, txs, commit, evidence, proposerAddr)
+	}
+
+	blockExec.logger.Info(
+		"Mekatek builder API response",
+		"recv_tx_count", len(resp.Txs),
+		"validator_payment", resp.ValidatorPayment,
 		"took", took.String(),
 	)
 
-	if err != nil {
-		logger.Error("Mekatek builder API request failed, falling back to mempool txs", "err", err)
-		return state.MakeBlock(height, txs, commit, evidence, proposerAddr)
-	}
-
 	builderTxs := mekatekFromBytesToTxs(resp.Txs)
 	added, moved, ignored, same := diff(txs, builderTxs)
-	logger = logger.With(
-		"recv_tx_count", len(resp.Txs),
-		"validator_payment", resp.ValidatorPayment,
-		"added_tx_count", len(added),
-		"moved_tx_count", len(moved),
-		"ignored_tx_count", len(ignored),
-		"same_tx_count", len(same),
+	blockExec.logger.Info(
+		"Mekatek builder API block txs",
+		"added", len(added),
+		"moved", len(moved),
+		"ignored", len(ignored),
+		"same", len(same),
 	)
 
 	if mekabuild.DryRunMode() {
-		logger.Info("Mekatek builder API returned block in dry run mode, ignoring")
+		blockExec.logger.Info("Mekatek builder API dry run mode, falling back to mempool txs")
 		return state.MakeBlock(height, txs, commit, evidence, proposerAddr)
 	}
 
-	logger.Info("Mekatek builder API returned block, proposing")
 	return state.MakeBlock(height, builderTxs, commit, evidence, proposerAddr)
 }
 
