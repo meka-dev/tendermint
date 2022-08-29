@@ -17,7 +17,7 @@ the corresponding release tag.
   <tr>
     <td align="center"><a href="https://github.com/osmosis-labs/osmosis">Osmosis</a></td>
     <td align="center"><a href="https://github.com/osmosis-labs/osmosis/tree/v11.0.1">v11.0.1</a></td>
-    <td align="center"><a href="https://github.com/osmosis-labs/osmosis/blob/v11.0.1/go.mod#L28">v0.34.19</td>
+    <td align="center"><a href="https://github.com/osmosis-labs/osmosis/blob/v11.0.1/go.mod#L28">tendermint/tendermint v0.34.19</a></td>
     <td align="center">
       <a href="https://github.com/meka-dev/tendermint/tree/v0.34.19-mekatek">v0.34.19-mekatek</a>
       (<a href="https://github.com/meka-dev/tendermint/compare/v0.34.19...v0.34.19-mekatek">diff</a>)
