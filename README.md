@@ -1,42 +1,13 @@
 # meka-dev/tendermint
 
 This fork of [tendermint/tendermint](https://github.com/tendermint/tendermint)
-has been patched to support the [Mekatek builder API](https://api.mekatek.xyz).
-Each supported network has a tracking branch corresponding to their version of
-Tendermint. Validators should build their nodes with this fork of Tendermint at
-the corresponding release tag.
+includes patches to support [Mekatek builder API](https://api.mekatek.xyz)
+for supported networks.
 
-<table>
-  <tr>
-    <th>Network</th>
-    <th>Version</th>
-    <th>Tendermint</th>
-    <th>Tracking branch</th>
-    <th><strong> ★ Release tag ★ </strong></th>
-  </tr>
-  <tr>
-    <td align="center"><a href="https://github.com/osmosis-labs/osmosis">Osmosis</a></td>
-    <td align="center"><a href="https://github.com/osmosis-labs/osmosis/tree/v11.0.1">v11.0.1</a></td>
-    <td align="center"><a href="https://github.com/osmosis-labs/osmosis/blob/v11.0.1/go.mod#L28">tendermint/tendermint v0.34.19</a></td>
-    <td align="center">
-      <a href="https://github.com/meka-dev/tendermint/tree/v0.34.19-mekatek">v0.34.19-mekatek</a>
-      (<a href="https://github.com/meka-dev/tendermint/compare/v0.34.19...v0.34.19-mekatek">diff</a>)
-    </td>
-    <td align="center">
-      <strong><a href="https://github.com/meka-dev/tendermint/tree/mekatek/osmosis-v11.0.1-b">mekatek/osmosis-v11.0.1-b</a></strong>
-      (<a href="https://github.com/meka-dev/tendermint/compare/v0.34.19...mekatek/osmosis-v11.0.1-b">diff</a>)
-    </td>
-  </tr>
-</table>
+| Network            | Version                    | Release                                               |
+|:-------------------|:---------------------------|:------------------------------------------------------|
+| [Osmosis][osmosis] | [v11.0.1][osmosis-v11.0.1] | [osmosisd-v11.0.1-mekatek.1][osmosis-v11.0.1-release] |
 
-Here is an example of how to build Osmosis.
-
-```shell
-git clone https://github.com/osmosis-labs/osmosis
-cd osmosis
-git checkout v11.0.1
-go mod edit -replace=github.com/tendermint/tendermint=github.com/meka-dev/tendermint@mekatek/osmosis-v11.0.1-b
-go mod tidy
-make build
-ls -ltar build/osmosisd
-```
+[osmosis]:                 https://github.com/osmosis-labs/osmosis
+[osmosis-v11.0.1]:         https://github.com/osmosis-labs/osmosis/tree/v11.0.1
+[osmosis-v11.0.1-release]: https://github.com/meka-dev/tendermint/releases/tag/mekatek%2Fosmosis%2Fv11.0.1-1
