@@ -1,8 +1,7 @@
 # meka-dev/tendermint
 
 This fork of [tendermint/tendermint](https://github.com/tendermint/tendermint)
-includes patches to support the [Mekatek builder API](https://api.mekatek.xyz)
-for supported networks.
+includes patches to support the [Mekatek builder API](https://api.mekatek.xyz).
 
 | Network            | Version                    | Release                                               |
 |:-------------------|:---------------------------|:------------------------------------------------------|
