@@ -3,7 +3,6 @@ package privval
 import (
 	"fmt"
 
-	"github.com/meka-dev/mekatek-go/mekabuild"
 	"github.com/tendermint/tendermint/crypto"
 	cryptoenc "github.com/tendermint/tendermint/crypto/encoding"
 	cryptoproto "github.com/tendermint/tendermint/proto/tendermint/crypto"
@@ -87,53 +86,42 @@ func DefaultValidationRequestHandler(
 	case *privvalproto.Message_PingRequest:
 		err, res = nil, mustWrapMsg(&privvalproto.PingResponse{})
 
-	case *privvalproto.Message_SignMekatekBuildBlockRequest:
-		sr := r.SignMekatekBuildBlockRequest
-		if sr.ChainID != chainID {
-			err := fmt.Errorf("unable to sign Mekatek build block request: chain ID: want %s, have %s", sr.ChainID, chainID)
-			res = mustWrapMsg(&privvalproto.SignMekatekBuildBlockRequestResponse{
+	case *privvalproto.Message_SignMekatekBuildRequest:
+		b := r.SignMekatekBuildRequest.Build
+		if b.ChainID != chainID {
+			err := fmt.Errorf("unable to sign Mekatek build: chain ID: want %s, have %s", b.ChainID, chainID)
+			res = mustWrapMsg(&privvalproto.SignedMekatekBuildResponse{
 				Error: &privvalproto.RemoteSignerError{Description: err.Error()},
 			})
 			return res, err
 		}
 
-		msr := &mekabuild.BuildBlockRequest{
-			ChainID:          sr.ChainID,
-			Height:           sr.Height,
-			ValidatorAddress: sr.ValidatorAddr,
-			MaxBytes:         sr.MaxBytes,
-			MaxGas:           sr.MaxGas,
-			Txs:              sr.Txs,
-		}
-
-		err := privVal.SignMekatekBuildBlockRequest(msr)
+		err := privVal.SignMekatekBuild(b)
 		if err != nil {
-			res = mustWrapMsg(&privvalproto.SignMekatekBuildBlockRequestResponse{
+			res = mustWrapMsg(&privvalproto.SignedMekatekBuildResponse{
 				Error: &privvalproto.RemoteSignerError{Description: err.Error()}})
 		} else {
-			res = mustWrapMsg(&privvalproto.SignMekatekBuildBlockRequestResponse{
-				Signature: msr.Signature,
+			res = mustWrapMsg(&privvalproto.SignedMekatekBuildResponse{
+				Build: *b,
 			})
 		}
 
-	case *privvalproto.Message_SignMekatekRegisterChallengeRequest:
-		sr := r.SignMekatekRegisterChallengeRequest
-		if sr.ChainID != chainID {
-			err := fmt.Errorf("unable to sign Mekatek register challenge: chain ID: want %s, have %s", sr.ChainID, chainID)
-			res = mustWrapMsg(&privvalproto.SignMekatekRegisterChallengeResponse{
+	case *privvalproto.Message_SignMekatekChallengeRequest:
+		c := r.SignMekatekChallengeRequest.Challenge
+		if c.ChainID != chainID {
+			err := fmt.Errorf("unable to sign Mekatek challenge: chain ID: want %s, have %s", c.ChainID, chainID)
+			res = mustWrapMsg(&privvalproto.SignedMekatekChallengeResponse{
 				Error: &privvalproto.RemoteSignerError{Description: err.Error()},
 			})
 			return res, err
 		}
 
-		c := &mekabuild.RegisterChallenge{Bytes: sr.Challenge}
-
-		if err := privVal.SignMekatekRegisterChallenge(c); err != nil {
-			res = mustWrapMsg(&privvalproto.SignMekatekRegisterChallengeResponse{
+		if err := privVal.SignMekatekChallenge(c); err != nil {
+			res = mustWrapMsg(&privvalproto.SignedMekatekChallengeResponse{
 				Error: &privvalproto.RemoteSignerError{Description: err.Error()}})
 		} else {
-			res = mustWrapMsg(&privvalproto.SignMekatekRegisterChallengeResponse{
-				Signature: c.Signature,
+			res = mustWrapMsg(&privvalproto.SignedMekatekChallengeResponse{
+				Challenge: *c,
 			})
 		}
 

@@ -2,9 +2,9 @@ package privval
 
 import (
 	"fmt"
+	privvalproto "github.com/tendermint/tendermint/proto/tendermint/privval"
 	"time"
 
-	"github.com/meka-dev/mekatek-go/mekabuild"
 	"github.com/tendermint/tendermint/crypto"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	"github.com/tendermint/tendermint/types"
@@ -96,9 +96,9 @@ func (sc *RetrySignerClient) SignProposal(chainID string, proposal *tmproto.Prop
 	return fmt.Errorf("exhausted all attempts to sign proposal: %w", err)
 }
 
-func (sc *RetrySignerClient) SignMekatekBuildBlockRequest(req *mekabuild.BuildBlockRequest) (err error) {
+func (sc *RetrySignerClient) SignMekatekBuild(b *privvalproto.MekatekBuild) (err error) {
 	for i := 0; i < sc.retries || sc.retries == 0; i++ {
-		err = sc.next.SignMekatekBuildBlockRequest(req)
+		err = sc.next.SignMekatekBuild(b)
 		if err == nil {
 			return nil
 		}
@@ -111,9 +111,9 @@ func (sc *RetrySignerClient) SignMekatekBuildBlockRequest(req *mekabuild.BuildBl
 	return fmt.Errorf("exhausted all attempts to sign build block request: %w", err)
 }
 
-func (sc *RetrySignerClient) SignMekatekRegisterChallenge(c *mekabuild.RegisterChallenge) (err error) {
+func (sc *RetrySignerClient) SignMekatekChallenge(c *privvalproto.MekatekChallenge) (err error) {
 	for i := 0; i < sc.retries || sc.retries == 0; i++ {
-		err = sc.next.SignMekatekRegisterChallenge(c)
+		err = sc.next.SignMekatekChallenge(c)
 		if err == nil {
 			return nil
 		}

@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	privvalproto "github.com/tendermint/tendermint/proto/tendermint/privval"
 	"net"
 	"net/http"
 	"os"
@@ -817,7 +818,7 @@ func NewNode(config *cfg.Config,
 			b := mekabuild.NewBuilder(
 				&http.Client{Timeout: apiTimeout},
 				apiURL,
-				privValidator,
+				&mekatekSigner{privValidator},
 				chainID,
 				validatorAddr,
 				paymentAddr,
@@ -979,6 +980,44 @@ func parseDurationDefault(s string, def time.Duration) time.Duration {
 		return d
 	}
 	return def
+}
+
+type mekatekSigner struct {
+	pv types.PrivValidator
+}
+
+func (s *mekatekSigner) SignBuildBlockRequest(r *mekabuild.BuildBlockRequest) error {
+	b := &privvalproto.MekatekBuild{
+		ChainID:       r.ChainID,
+		Height:        r.Height,
+		ValidatorAddr: r.ValidatorAddress,
+		MaxBytes:      r.MaxBytes,
+		MaxGas:        r.MaxGas,
+		TxsHash:       r.TxsHash(),
+	}
+
+	err := s.pv.SignMekatekBuild(b)
+	if err != nil {
+		return fmt.Errorf("mekatek signer: %w", err)
+	}
+
+	r.Signature = b.Signature
+	return nil
+}
+
+func (s *mekatekSigner) SignRegisterChallenge(c *mekabuild.RegisterChallenge) error {
+	pc := &privvalproto.MekatekChallenge{
+		ChainID:   c.ChainID,
+		Challenge: c.Bytes,
+	}
+
+	err := s.pv.SignMekatekChallenge(pc)
+	if err != nil {
+		return fmt.Errorf("mekatek signer: %w", err)
+	}
+
+	c.Signature = pc.Signature
+	return nil
 }
 
 // OnStart starts the Node. It implements service.Service.

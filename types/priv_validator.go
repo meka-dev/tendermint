@@ -7,6 +7,7 @@ import (
 
 	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/crypto/ed25519"
+	privvalproto "github.com/tendermint/tendermint/proto/tendermint/privval"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/meka-dev/mekatek-go/mekabuild"
@@ -20,8 +21,8 @@ type PrivValidator interface {
 	SignVote(chainID string, vote *tmproto.Vote) error
 	SignProposal(chainID string, proposal *tmproto.Proposal) error
 
-	SignMekatekBuildBlockRequest(*mekabuild.BuildBlockRequest) error
-	SignMekatekRegisterChallenge(*mekabuild.RegisterChallenge) error
+	SignMekatekBuild(build *privvalproto.MekatekBuild) error
+	SignMekatekChallenge(challenge *privvalproto.MekatekChallenge) error
 }
 
 type PrivValidatorsByAddress []PrivValidator
@@ -106,19 +107,29 @@ func (pv MockPV) SignProposal(chainID string, proposal *tmproto.Proposal) error 
 	return nil
 }
 
-func (pv MockPV) SignMekatekBuildBlockRequest(req *mekabuild.BuildBlockRequest) error {
-	signature, err := pv.PrivKey.Sign(req.SignableBytes())
+func (pv MockPV) SignMekatekBuild(b *privvalproto.MekatekBuild) error {
+	signature, err := pv.PrivKey.Sign(mekabuild.BuildBlockRequestSignBytes(
+		b.ChainID,
+		b.Height,
+		b.ValidatorAddr,
+		b.MaxBytes,
+		b.MaxGas,
+		b.TxsHash,
+	))
 	if err != nil {
 		return err
 	}
 
-	req.Signature = signature
+	b.Signature = signature
 
 	return nil
 }
 
-func (pv MockPV) SignMekatekRegisterChallenge(c *mekabuild.RegisterChallenge) error {
-	signature, err := pv.PrivKey.Sign(c.SignableBytes())
+func (pv MockPV) SignMekatekChallenge(c *privvalproto.MekatekChallenge) error {
+	signature, err := pv.PrivKey.Sign(mekabuild.RegisterChallengeSignBytes(
+		c.ChainID,
+		c.Challenge,
+	))
 	if err != nil {
 		return err
 	}

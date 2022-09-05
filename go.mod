@@ -23,7 +23,7 @@ require (
 	github.com/gtank/merlin v0.1.1
 	github.com/lib/pq v1.10.4
 	github.com/libp2p/go-buffer-pool v0.0.2
-	github.com/meka-dev/mekatek-go v0.0.2
+	github.com/meka-dev/mekatek-go v0.0.6
 	github.com/minio/highwayhash v1.0.2
 	github.com/ory/dockertest v3.3.5+incompatible
 	github.com/pkg/errors v0.9.1

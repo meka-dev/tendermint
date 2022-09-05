@@ -62,31 +62,44 @@ message PingRequest {}
 // PingResponse is a response to confirm that the connection is alive.
 message PingResponse {}
 
-// SignMekatekBuildBlockRequest is a request to sign a MektatekBuildBlockRequest
-message SignMekatekBuildBlockRequest {
-  string         chain_id       = 1 [(gogoproto.customname) = "ChainID"];
-  int64          height         = 2;
-  string         validator_addr = 3;
-  int64          max_bytes      = 4;
-  int64          max_gas        = 5;
-  repeated bytes txs            = 6;
+// MekatekBuild represents a request for Mekatek to build a block.
+message MekatekBuild {
+  string chain_id       = 1 [(gogoproto.customname) = "ChainID"];
+  int64  height         = 2;
+  string validator_addr = 3;
+  int64  max_bytes      = 4;
+  int64  max_gas        = 5;
+  bytes  txs_hash       = 6;
+  bytes  signature      = 7;
 }
 
-// SignMekatekBuildBlockRequestResponse is response containing the signature of a SignMekatekBuildBlockRequest or an error
-message SignMekatekBuildBlockRequestResponse {
-  bytes             signature = 1;
-  RemoteSignerError error     = 2;
+// SignMekatekBuildRequest is a request to sign a MektatekBuildBlockRequest
+message SignMekatekBuildRequest {
+  MekatekBuild build = 1;
 }
 
-// SignMekatekRegisterChallenge is a request to sign a MektatekRegisterChallenge
-message SignMekatekRegisterChallenge {
-  bytes  challenge = 1;
-  string chain_id  = 2 [(gogoproto.customname) = "ChainID"];
+// SignedMekatekBuildResponse is response containing a signed MekatekBuild or an error
+message SignedMekatekBuildResponse {
+  MekatekBuild      build = 1 [(gogoproto.nullable) = false];
+  RemoteSignerError error = 2;
 }
 
-// SignMekatekRegisterChallengeResponse is response containing the signature of a SignMekatekRegisterChallenge or an error
-message SignMekatekRegisterChallengeResponse {
-  bytes             signature = 1;
+// MekatekChallenge is a registration challenge that validators must sign in order to authenticate with
+// Mekatek.
+message MekatekChallenge {
+  string chain_id  = 1 [(gogoproto.customname) = "ChainID"];
+  bytes  challenge = 2;
+  bytes  signature = 3;
+}
+
+// SignMekatekChallengeRequest is a request to sign a MektatekChallenge
+message SignMekatekChallengeRequest {
+  MekatekChallenge challenge = 1;
+}
+
+// SignedMekatekChallengeResponse is response containing a signed MekatekChallenge or an error
+message SignedMekatekChallengeResponse {
+  MekatekChallenge  challenge = 1 [(gogoproto.nullable) = false];
   RemoteSignerError error     = 2;
 }
 
@@ -101,9 +114,9 @@ message Message {
     PingRequest                     ping_request                        = 7;
     PingResponse                    ping_response                       = 8;
 
-    SignMekatekBuildBlockRequest          sign_mekatek_build_block_request          = 9;
-    SignMekatekBuildBlockRequestResponse  sign_mekatek_build_block_request_response = 10;
-    SignMekatekRegisterChallenge          sign_mekatek_register_challenge_request   = 11;
-    SignMekatekRegisterChallengeResponse  sign_mekatek_register_challenge_response  = 12;
+    SignMekatekBuildRequest         sign_mekatek_build_request        = 9;
+    SignedMekatekBuildResponse      signed_mekatek_build_response     = 10;
+    SignMekatekChallengeRequest     sign_mekatek_challenge_request    = 11;
+    SignedMekatekChallengeResponse  signed_mekatek_challenge_response = 12;
   }
 }

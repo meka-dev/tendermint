@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	privvalproto "github.com/tendermint/tendermint/proto/tendermint/privval"
 	"io/ioutil"
 	"time"
 
@@ -268,21 +269,28 @@ func (pv *FilePV) SignProposal(chainID string, proposal *tmproto.Proposal) error
 	return nil
 }
 
-func (pv *FilePV) SignMekatekBuildBlockRequest(req *mekabuild.BuildBlockRequest) error {
-	signature, err := pv.Key.PrivKey.Sign(req.SignableBytes())
+func (pv *FilePV) SignMekatekBuild(b *privvalproto.MekatekBuild) error {
+	signature, err := pv.Key.PrivKey.Sign(mekabuild.BuildBlockRequestSignBytes(
+		b.ChainID,
+		b.Height,
+		b.ValidatorAddr,
+		b.MaxBytes,
+		b.MaxGas,
+		b.TxsHash,
+	))
 	if err != nil {
-		return fmt.Errorf("sign Mekatek build block request: %w", err)
+		return fmt.Errorf("sign Mekatek build: %w", err)
 	}
 
-	req.Signature = signature
+	b.Signature = signature
 
 	return nil
 }
 
-func (pv *FilePV) SignMekatekRegisterChallenge(c *mekabuild.RegisterChallenge) error {
-	signature, err := pv.Key.PrivKey.Sign(c.SignableBytes())
+func (pv *FilePV) SignMekatekChallenge(c *privvalproto.MekatekChallenge) error {
+	signature, err := pv.Key.PrivKey.Sign(mekabuild.RegisterChallengeSignBytes(c.ChainID, c.Challenge))
 	if err != nil {
-		return fmt.Errorf("sign Mekatek registration challenge: %w", err)
+		return fmt.Errorf("sign Mekatek challenge: %w", err)
 	}
 
 	c.Signature = signature

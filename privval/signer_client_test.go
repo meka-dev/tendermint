@@ -5,7 +5,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/meka-dev/mekatek-go/mekabuild"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -439,7 +438,7 @@ func TestSignerUnexpectedResponse(t *testing.T) {
 	}
 }
 
-func TestSignMekatekBuildBlockRequest(t *testing.T) {
+func TestSignMekatekBuild(t *testing.T) {
 	for _, tc := range getSignerTestCases(t) {
 		tc := tc
 		t.Cleanup(func() {
@@ -453,31 +452,28 @@ func TestSignMekatekBuildBlockRequest(t *testing.T) {
 			}
 		})
 
-		want := mekabuild.BuildBlockRequest{
-			ChainID:          tc.chainID,
-			Height:           1234,
-			ValidatorAddress: "foobar",
-			MaxBytes:         4321,
-			MaxGas:           9000,
-			Txs: [][]byte{
-				[]byte(`send the moneyz`),
-				[]byte(`to the good place`),
-			},
+		want := privvalproto.MekatekBuild{
+			ChainID:       tc.chainID,
+			Height:        1234,
+			ValidatorAddr: "foobar",
+			MaxBytes:      4321,
+			MaxGas:        9000,
+			TxsHash:       []byte("big old hash"),
 		}
 
 		have := want
 
-		err := tc.mockPV.SignMekatekBuildBlockRequest(&want)
+		err := tc.mockPV.SignMekatekBuild(&want)
 		require.NoError(t, err)
 
-		err = tc.signerClient.SignMekatekBuildBlockRequest(&have)
+		err = tc.signerClient.SignMekatekBuild(&have)
 		require.NoError(t, err)
 
 		assert.Equal(t, want, have)
 	}
 }
 
-func TestSignMekatekRegisterChallengeRequest(t *testing.T) {
+func TestSignMekatekChallengeRequest(t *testing.T) {
 	for _, tc := range getSignerTestCases(t) {
 		tc := tc
 		t.Cleanup(func() {
@@ -491,14 +487,14 @@ func TestSignMekatekRegisterChallengeRequest(t *testing.T) {
 			}
 		})
 
-		want := mekabuild.RegisterChallenge{Bytes: []byte("foobar")}
+		want := privvalproto.MekatekChallenge{ChainID: tc.chainID, Challenge: []byte("foobar")}
 
 		have := want
 
-		err := tc.mockPV.SignMekatekRegisterChallenge(&want)
+		err := tc.mockPV.SignMekatekChallenge(&want)
 		require.NoError(t, err)
 
-		err = tc.signerClient.SignMekatekRegisterChallenge(&have)
+		err = tc.signerClient.SignMekatekChallenge(&have)
 		require.NoError(t, err)
 
 		assert.Equal(t, want, have)
