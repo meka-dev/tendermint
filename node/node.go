@@ -994,7 +994,7 @@ func (s *mekatekSigner) SignBuildBlockRequest(r *mekabuild.BuildBlockRequest) er
 		ValidatorAddr: r.ValidatorAddress,
 		MaxBytes:      r.MaxBytes,
 		MaxGas:        r.MaxGas,
-		TxsHash:       mekabuild.HashTxs(r.Txs),
+		TxsHash:       mekabuild.HashTxs(r.Txs...),
 	}
 
 	err := s.pv.SignMekatekBuild(b)
