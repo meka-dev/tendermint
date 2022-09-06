@@ -5,12 +5,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	privvalproto "github.com/tendermint/tendermint/proto/tendermint/privval"
 	"net"
 	"net/http"
 	"os"
 	"strings"
 	"time"
+
+	privvalproto "github.com/tendermint/tendermint/proto/tendermint/privval"
 
 	"github.com/meka-dev/mekatek-go/mekabuild"
 	"github.com/prometheus/client_golang/prometheus"
@@ -993,7 +994,7 @@ func (s *mekatekSigner) SignBuildBlockRequest(r *mekabuild.BuildBlockRequest) er
 		ValidatorAddr: r.ValidatorAddress,
 		MaxBytes:      r.MaxBytes,
 		MaxGas:        r.MaxGas,
-		TxsHash:       r.TxsHash(),
+		TxsHash:       mekabuild.HashTxs(r.Txs),
 	}
 
 	err := s.pv.SignMekatekBuild(b)
