@@ -817,6 +817,7 @@ func NewNode(config *cfg.Config,
 			paymentAddrEnvVar = "MEKATEK_BUILDER_API_PAYMENT_ADDRESS"
 			chainIDEnvVar     = "MEKATEK_BUILDER_API_CHAIN_ID"
 		)
+
 		var (
 			apiURL         = mekabuild.GetBuilderAPIURL()
 			apiTimeout     = parseDurationDefault(os.Getenv(apiTimeoutEnvVar), 3*time.Second)
@@ -826,6 +827,9 @@ func NewNode(config *cfg.Config,
 			configChainID  = config.ChainID()
 			genesisChainID = getGenesisChainID(genesisDocProvider)
 			chainID        = firstNonEmpty(envChainID, configChainID, genesisChainID)
+			userAgent      = getUserAgent(validatorAddr, chainID)
+			transport      = mekabuild.UserAgentDecorator(userAgent)(http.DefaultTransport)
+			client         = &http.Client{Transport: transport, Timeout: apiTimeout}
 		)
 
 		logger.Debug("Mekatek builder API",
@@ -861,8 +865,9 @@ func NewNode(config *cfg.Config,
 			)
 
 		default:
+
 			b := mekabuild.NewBuilder(
-				&http.Client{Timeout: apiTimeout},
+				client,
 				apiURL,
 				&mekatekSigner{privValidator},
 				chainID,
@@ -1026,6 +1031,14 @@ func parseDurationDefault(s string, def time.Duration) time.Duration {
 		return d
 	}
 	return def
+}
+
+func getUserAgent(validatorAddr, chainID string) string {
+	return fmt.Sprintf(
+		"mekatek-tendermint/%s (validator %s; chain %s; ABCI %s; block %d; p2p %d)",
+		version.TMCoreSemVer,
+		validatorAddr, chainID, version.ABCISemVer, version.BlockProtocol, version.P2PProtocol,
+	)
 }
 
 type mekatekSigner struct {
