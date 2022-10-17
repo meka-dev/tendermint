@@ -4,9 +4,10 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	privvalproto "github.com/tendermint/tendermint/proto/tendermint/privval"
 	"io/ioutil"
 	"time"
+
+	privvalproto "github.com/tendermint/tendermint/proto/tendermint/privval"
 
 	"github.com/gogo/protobuf/proto"
 	"github.com/meka-dev/mekatek-go/mekabuild"
