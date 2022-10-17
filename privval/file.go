@@ -287,17 +287,6 @@ func (pv *FilePV) SignMekatekBuild(b *privvalproto.MekatekBuild) error {
 	return nil
 }
 
-func (pv *FilePV) SignMekatekChallenge(c *privvalproto.MekatekChallenge) error {
-	signature, err := pv.Key.PrivKey.Sign(mekabuild.RegisterChallengeSignBytes(c.ChainID, c.Challenge))
-	if err != nil {
-		return fmt.Errorf("sign Mekatek challenge: %w", err)
-	}
-
-	c.Signature = signature
-
-	return nil
-}
-
 // Save persists the FilePV to disk.
 func (pv *FilePV) Save() {
 	pv.Key.Save()
