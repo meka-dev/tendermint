@@ -807,8 +807,8 @@ func NewNode(config *cfg.Config,
 	var builder *mekabuild.Builder
 	{
 		var (
-			apiTimeoutEnvVar = firstNonEmpty(os.Getenv("MEKATEK_BUILDER_API_TIMEOUT"), os.Getenv("ZENITH_TIMEOUT"))
-			chainIDEnvVar    = firstNonEmpty(os.Getenv("MEKATEK_BUILDER_API_CHAIN_ID"), os.Getenv("ZENITH_CHAIN_ID"))
+			apiTimeoutEnvVar = firstNonEmpty(os.Getenv("ZENITH_TIMEOUT"), os.Getenv("MEKATEK_BUILDER_API_TIMEOUT"))
+			chainIDEnvVar    = firstNonEmpty(os.Getenv("ZENITH_CHAIN_ID"), os.Getenv("MEKATEK_BUILDER_API_CHAIN_ID"))
 			apiURL           = mekabuild.GetBuilderAPIURL()
 			apiTimeout       = parseDurationDefault(os.Getenv(apiTimeoutEnvVar), 3*time.Second)
 			validatorAddr    = pubKey.Address().String()
