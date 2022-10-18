@@ -22,7 +22,6 @@ type PrivValidator interface {
 	SignProposal(chainID string, proposal *tmproto.Proposal) error
 
 	SignMekatekBuild(build *privvalproto.MekatekBuild) error
-	SignMekatekChallenge(challenge *privvalproto.MekatekChallenge) error
 }
 
 type PrivValidatorsByAddress []PrivValidator
@@ -121,20 +120,6 @@ func (pv MockPV) SignMekatekBuild(b *privvalproto.MekatekBuild) error {
 	}
 
 	b.Signature = signature
-
-	return nil
-}
-
-func (pv MockPV) SignMekatekChallenge(c *privvalproto.MekatekChallenge) error {
-	signature, err := pv.PrivKey.Sign(mekabuild.RegisterChallengeSignBytes(
-		c.ChainID,
-		c.Challenge,
-	))
-	if err != nil {
-		return err
-	}
-
-	c.Signature = signature
 
 	return nil
 }

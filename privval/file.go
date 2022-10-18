@@ -4,9 +4,10 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	privvalproto "github.com/tendermint/tendermint/proto/tendermint/privval"
 	"io/ioutil"
 	"time"
+
+	privvalproto "github.com/tendermint/tendermint/proto/tendermint/privval"
 
 	"github.com/gogo/protobuf/proto"
 	"github.com/meka-dev/mekatek-go/mekabuild"
@@ -283,17 +284,6 @@ func (pv *FilePV) SignMekatekBuild(b *privvalproto.MekatekBuild) error {
 	}
 
 	b.Signature = signature
-
-	return nil
-}
-
-func (pv *FilePV) SignMekatekChallenge(c *privvalproto.MekatekChallenge) error {
-	signature, err := pv.Key.PrivKey.Sign(mekabuild.RegisterChallengeSignBytes(c.ChainID, c.Challenge))
-	if err != nil {
-		return fmt.Errorf("sign Mekatek challenge: %w", err)
-	}
-
-	c.Signature = signature
 
 	return nil
 }

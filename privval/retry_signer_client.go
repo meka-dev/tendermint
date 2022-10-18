@@ -2,8 +2,9 @@ package privval
 
 import (
 	"fmt"
-	privvalproto "github.com/tendermint/tendermint/proto/tendermint/privval"
 	"time"
+
+	privvalproto "github.com/tendermint/tendermint/proto/tendermint/privval"
 
 	"github.com/tendermint/tendermint/crypto"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
@@ -109,19 +110,4 @@ func (sc *RetrySignerClient) SignMekatekBuild(b *privvalproto.MekatekBuild) (err
 		time.Sleep(sc.timeout)
 	}
 	return fmt.Errorf("exhausted all attempts to sign build block request: %w", err)
-}
-
-func (sc *RetrySignerClient) SignMekatekChallenge(c *privvalproto.MekatekChallenge) (err error) {
-	for i := 0; i < sc.retries || sc.retries == 0; i++ {
-		err = sc.next.SignMekatekChallenge(c)
-		if err == nil {
-			return nil
-		}
-		// If remote signer errors, we don't retry.
-		if _, ok := err.(*RemoteSignerError); ok {
-			return err
-		}
-		time.Sleep(sc.timeout)
-	}
-	return fmt.Errorf("exhausted all attempts to sign register challenge: %w", err)
 }

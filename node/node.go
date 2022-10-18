@@ -812,30 +812,24 @@ func NewNode(config *cfg.Config,
 
 	var builder *mekabuild.Builder
 	{
-		const (
-			apiTimeoutEnvVar  = "MEKATEK_BUILDER_API_TIMEOUT"
-			paymentAddrEnvVar = "MEKATEK_BUILDER_API_PAYMENT_ADDRESS"
-			chainIDEnvVar     = "MEKATEK_BUILDER_API_CHAIN_ID"
-		)
-
 		var (
-			apiURL         = mekabuild.GetBuilderAPIURL()
-			apiTimeout     = parseDurationDefault(os.Getenv(apiTimeoutEnvVar), 3*time.Second)
-			validatorAddr  = pubKey.Address().String()
-			paymentAddr    = os.Getenv(paymentAddrEnvVar)
-			envChainID     = os.Getenv(chainIDEnvVar)
-			configChainID  = config.ChainID()
-			genesisChainID = getGenesisChainID(genesisDocProvider)
-			chainID        = firstNonEmpty(envChainID, configChainID, genesisChainID)
-			userAgent      = getUserAgent(validatorAddr, chainID)
-			transport      = mekabuild.UserAgentDecorator(userAgent)(http.DefaultTransport)
-			client         = &http.Client{Transport: transport, Timeout: apiTimeout}
+			apiTimeoutEnvVar = firstNonEmpty(os.Getenv("ZENITH_TIMEOUT"), os.Getenv("MEKATEK_BUILDER_API_TIMEOUT"))
+			chainIDEnvVar    = firstNonEmpty(os.Getenv("ZENITH_CHAIN_ID"), os.Getenv("MEKATEK_BUILDER_API_CHAIN_ID"))
+			apiURL           = mekabuild.GetBuilderAPIURL()
+			apiTimeout       = parseDurationDefault(os.Getenv(apiTimeoutEnvVar), 3*time.Second)
+			validatorAddr    = pubKey.Address().String()
+			envChainID       = os.Getenv(chainIDEnvVar)
+			configChainID    = config.ChainID()
+			genesisChainID   = getGenesisChainID(genesisDocProvider)
+			chainID          = firstNonEmpty(envChainID, configChainID, genesisChainID)
+			userAgent        = getUserAgent(validatorAddr, chainID)
+			transport        = mekabuild.UserAgentDecorator(userAgent)(http.DefaultTransport)
+			client           = &http.Client{Transport: transport, Timeout: apiTimeout}
 		)
 
 		logger.Debug("Mekatek builder API",
 			"api_url", apiURL.String(),
 			apiTimeoutEnvVar, apiTimeout,
-			paymentAddrEnvVar, paymentAddr,
 			chainIDEnvVar, envChainID,
 			"config_chain_id", configChainID,
 			"genesis_chain_id", genesisChainID,
@@ -845,7 +839,6 @@ func NewNode(config *cfg.Config,
 			"api_url", apiURL.String(),
 			"timeout", apiTimeout.String(),
 			"chain_id", chainID,
-			"payment_address", paymentAddr,
 			"validator_address", validatorAddr,
 		)
 
@@ -856,14 +849,6 @@ func NewNode(config *cfg.Config,
 				"why", "unable to deduce chain ID",
 				"fix", fmt.Sprintf("set the %s env var", chainIDEnvVar),
 			)
-
-		case paymentAddr == "":
-			logger.Error(
-				"Mekatek builder API disabled",
-				"why", "payment address for this validator not set",
-				"fix", fmt.Sprintf("set the %s env var to a valid Bech32 address", paymentAddrEnvVar),
-			)
-
 		default:
 
 			b := mekabuild.NewBuilder(
@@ -872,15 +857,7 @@ func NewNode(config *cfg.Config,
 				&mekatekSigner{privValidator},
 				chainID,
 				validatorAddr,
-				paymentAddr,
 			)
-
-			switch err := b.Register(context.Background()); {
-			case err == nil:
-				logger.Info("Mekatek builder API registration successful")
-			case err != nil:
-				logger.Error("initial Mekatek builder API registration failed, will be retried until successful", "err", err)
-			}
 
 			switch {
 			case mekabuild.DryRunMode():
@@ -1061,21 +1038,6 @@ func (s *mekatekSigner) SignBuildBlockRequest(r *mekabuild.BuildBlockRequest) er
 	}
 
 	r.Signature = b.Signature
-	return nil
-}
-
-func (s *mekatekSigner) SignRegisterChallenge(c *mekabuild.RegisterChallenge) error {
-	pc := &privvalproto.MekatekChallenge{
-		ChainID:   c.ChainID,
-		Challenge: c.Bytes,
-	}
-
-	err := s.pv.SignMekatekChallenge(pc)
-	if err != nil {
-		return fmt.Errorf("mekatek signer: %w", err)
-	}
-
-	c.Signature = pc.Signature
 	return nil
 }
 

@@ -153,25 +153,3 @@ func (sc *SignerClient) SignMekatekBuild(b *privvalproto.MekatekBuild) error {
 
 	return nil
 }
-
-func (sc *SignerClient) SignMekatekChallenge(c *privvalproto.MekatekChallenge) error {
-	response, err := sc.endpoint.SendRequest(mustWrapMsg(
-		&privvalproto.SignMekatekChallengeRequest{Challenge: c},
-	))
-	if err != nil {
-		return fmt.Errorf("send Mekatek register challenge: %w", err)
-	}
-
-	resp := response.GetSignedMekatekChallengeResponse()
-	if resp == nil {
-		return ErrUnexpectedResponse
-	}
-
-	if resp.Error != nil {
-		return &RemoteSignerError{Code: int(resp.Error.Code), Description: resp.Error.Description}
-	}
-
-	*c = resp.Challenge
-
-	return nil
-}

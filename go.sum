@@ -684,8 +684,8 @@ github.com/matttproud/golang_protobuf_extensions v1.0.2-0.20181231171920-c182aff
 github.com/matttproud/golang_protobuf_extensions v1.0.2-0.20181231171920-c182affec369/go.mod h1:BSXmuO+STAnVfrANrmjBb36TMTDstsz7MSK+HVaYKv4=
 github.com/mbilski/exhaustivestruct v1.2.0 h1:wCBmUnSYufAHO6J4AVWY6ff+oxWxsVFrwgOdMUQePUo=
 github.com/mbilski/exhaustivestruct v1.2.0/go.mod h1:OeTBVxQWoEmB2J2JCHmXWPJ0aksxSUOUy+nvtVEfzXc=
-github.com/meka-dev/mekatek-go v0.0.14 h1:MtkGxy6O5QIrhgVCm1XpS2Hhzc/SH9TWOELQjdCdPwk=
-github.com/meka-dev/mekatek-go v0.0.14/go.mod h1:WoFwck7ChUcjPrxlYSyj6SDBnbeI3mamJ+Gjqxzrm9k=
+github.com/meka-dev/mekatek-go v0.0.15 h1:2UBbGaYdQbe2bY6ZInVWFAHNmXi5NV3qJp8Ki4amJ3w=
+github.com/meka-dev/mekatek-go v0.0.15/go.mod h1:WoFwck7ChUcjPrxlYSyj6SDBnbeI3mamJ+Gjqxzrm9k=
 github.com/mgechev/dots v0.0.0-20190921121421-c36f7dcfbb81/go.mod h1:KQ7+USdGKfpPjXk4Ga+5XxQM4Lm4e3gAogrreFAYpOg=
 github.com/mgechev/dots v0.0.0-20210922191527-e955255bf517 h1:zpIH83+oKzcpryru8ceC6BxnoG8TBrhgAvRg8obzup0=
 github.com/mgechev/dots v0.0.0-20210922191527-e955255bf517/go.mod h1:KQ7+USdGKfpPjXk4Ga+5XxQM4Lm4e3gAogrreFAYpOg=
