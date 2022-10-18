@@ -812,30 +812,33 @@ func NewNode(config *cfg.Config,
 
 	var builder *mekabuild.Builder
 	{
+		const (
+			apiTimeoutEnvVar            = "ZENITH_TIMEOUT"
+			apiTimeoutEnvVarDeprecated  = "MEKATEK_BUILDER_API_TIMEOUT"
+			paymentAddrEnvVar           = "ZENITH_PAYMENT_ADDRESS"
+			paymentAddrEnvVarDeprecated = "MEKATEK_BUILDER_API_PAYMENT_ADDRESS"
+			chainIDEnvVar               = "ZENITH_CHAIN_ID"
+			chainIDEnvVarDeprecated     = "MEKATEK_BUILDER_API_CHAIN_ID"
+		)
+
 		var (
-			apiTimeoutEnvVar = firstNonEmpty(os.Getenv("ZENITH_TIMEOUT"), os.Getenv("MEKATEK_BUILDER_API_TIMEOUT"))
-			chainIDEnvVar    = firstNonEmpty(os.Getenv("ZENITH_CHAIN_ID"), os.Getenv("MEKATEK_BUILDER_API_CHAIN_ID"))
-			apiURL           = mekabuild.GetBuilderAPIURL()
-			apiTimeout       = parseDurationDefault(os.Getenv(apiTimeoutEnvVar), 3*time.Second)
-			validatorAddr    = pubKey.Address().String()
-			envChainID       = os.Getenv(chainIDEnvVar)
-			configChainID    = config.ChainID()
-			genesisChainID   = getGenesisChainID(genesisDocProvider)
-			chainID          = firstNonEmpty(envChainID, configChainID, genesisChainID)
-			userAgent        = getUserAgent(validatorAddr, chainID)
-			transport        = mekabuild.UserAgentDecorator(userAgent)(http.DefaultTransport)
-			client           = &http.Client{Transport: transport, Timeout: apiTimeout}
+			apiTimeoutStr = firstNonEmpty(os.Getenv(apiTimeoutEnvVar), os.Getenv(apiTimeoutEnvVarDeprecated))
+			apiTimeout    = parseDurationDefault(apiTimeoutStr, 3*time.Second)
+			chainID       = firstNonEmpty(os.Getenv(chainIDEnvVar), os.Getenv(chainIDEnvVarDeprecated))
+			apiURL        = mekabuild.GetBuilderAPIURL()
+			validatorAddr = pubKey.Address().String()
+			userAgent     = getUserAgent(validatorAddr, chainID)
+			transport     = mekabuild.UserAgentDecorator(userAgent)(http.DefaultTransport)
+			client        = &http.Client{Transport: transport, Timeout: apiTimeout}
 		)
 
-		logger.Debug("Mekatek builder API",
-			"api_url", apiURL.String(),
-			apiTimeoutEnvVar, apiTimeout,
-			chainIDEnvVar, envChainID,
-			"config_chain_id", configChainID,
-			"genesis_chain_id", genesisChainID,
+		logger.Debug("Zenith parameters",
+			apiTimeoutEnvVar, os.Getenv(apiTimeoutEnvVar),
+			apiTimeoutEnvVarDeprecated, os.Getenv(apiTimeoutEnvVarDeprecated),
+			chainIDEnvVar, chainID,
 		)
 
-		logger.Info("Mekatek builder API",
+		logger.Info("Zenith settings",
 			"api_url", apiURL.String(),
 			"timeout", apiTimeout.String(),
 			"chain_id", chainID,
@@ -845,12 +848,12 @@ func NewNode(config *cfg.Config,
 		switch {
 		case chainID == "":
 			logger.Error(
-				"Mekatek builder API disabled",
-				"why", "unable to deduce chain ID",
+				"Zenith disabled",
+				"why", "chain ID not specified",
 				"fix", fmt.Sprintf("set the %s env var", chainIDEnvVar),
 			)
-		default:
 
+		default:
 			b := mekabuild.NewBuilder(
 				client,
 				apiURL,
@@ -861,9 +864,9 @@ func NewNode(config *cfg.Config,
 
 			switch {
 			case mekabuild.DryRunMode():
-				logger.Info("Mekatek builder API in DRY-RUN mode: will make and log builder API requests, but propose normal blocks")
+				logger.Info("Zenith in DRY-RUN mode: will make and log API requests, but propose normal blocks")
 			default:
-				logger.Info("Mekatek builder API in LIVE mode: will propose blocks returned from build requests")
+				logger.Info("Zenith in LIVE mode: will propose blocks returned from build requests")
 			}
 
 			builder = b

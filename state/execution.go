@@ -127,7 +127,7 @@ func (blockExec *BlockExecutor) CreateProposalBlock(
 	// default mempool transaction reaping.
 	txs := blockExec.mempool.ReapMaxBytesMaxGas(maxDataBytes, maxGas)
 	if blockExec.builder == nil { // block builder not configured
-		blockExec.logger.Debug("Mekatek builder API disabled, using normal mempool txs")
+		blockExec.logger.Debug("Zenith disabled, using normal mempool txs")
 		return state.MakeBlock(height, txs, commit, evidence, proposerAddr)
 	}
 
@@ -141,7 +141,7 @@ func (blockExec *BlockExecutor) CreateProposalBlock(
 	}
 
 	blockExec.logger.Info(
-		"Mekatek builder API request",
+		"Zenith request",
 		"chain_id", state.ChainID,
 		"height", height,
 		"send_tx_count", len(req.Txs),
@@ -154,7 +154,7 @@ func (blockExec *BlockExecutor) CreateProposalBlock(
 	took := time.Since(begin)
 	if err != nil {
 		blockExec.logger.Error(
-			"Mekatek builder API error, falling back to mempool txs",
+			"Zenith error, falling back to mempool txs",
 			"took", took.String(),
 			"err", err,
 		)
@@ -162,7 +162,7 @@ func (blockExec *BlockExecutor) CreateProposalBlock(
 	}
 
 	blockExec.logger.Info(
-		"Mekatek builder API response",
+		"Zenith response",
 		"recv_tx_count", len(resp.Txs),
 		"validator_payment", resp.ValidatorPayment,
 		"took", took.String(),
@@ -171,7 +171,7 @@ func (blockExec *BlockExecutor) CreateProposalBlock(
 	builderTxs := mekatekFromBytesToTxs(resp.Txs)
 	added, moved, ignored, same := diff(txs, builderTxs)
 	blockExec.logger.Info(
-		"Mekatek builder API block txs",
+		"Zenith block txs",
 		"added", len(added),
 		"moved", len(moved),
 		"ignored", len(ignored),
@@ -179,7 +179,7 @@ func (blockExec *BlockExecutor) CreateProposalBlock(
 	)
 
 	if mekabuild.DryRunMode() {
-		blockExec.logger.Info("Mekatek builder API dry run mode, falling back to mempool txs")
+		blockExec.logger.Info("Zenith dry run mode, falling back to mempool txs")
 		return state.MakeBlock(height, txs, commit, evidence, proposerAddr)
 	}
 
