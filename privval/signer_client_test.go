@@ -463,7 +463,7 @@ func TestSignMekatekBuild(t *testing.T) {
 
 		have := want
 
-		err := tc.mockPV.SignMekatekBuild(&want)
+		err := tc.mockPV.(types.PrivValidatorMekatek).SignMekatekBuild(&want)
 		require.NoError(t, err)
 
 		err = tc.signerClient.SignMekatekBuild(&have)

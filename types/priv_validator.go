@@ -20,7 +20,10 @@ type PrivValidator interface {
 
 	SignVote(chainID string, vote *tmproto.Vote) error
 	SignProposal(chainID string, proposal *tmproto.Proposal) error
+}
 
+type PrivValidatorMekatek interface {
+	PrivValidator
 	SignMekatekBuild(build *privvalproto.MekatekBuild) error
 }
 

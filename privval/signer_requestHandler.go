@@ -96,7 +96,16 @@ func DefaultValidationRequestHandler(
 			return res, err
 		}
 
-		err := privVal.SignMekatekBuild(b)
+		mpv, ok := privVal.(types.PrivValidatorMekatek)
+		if !ok {
+			err := fmt.Errorf("unable to upgrade private validator (%T) for Mekatek signing", privVal)
+			res = mustWrapMsg(&privvalproto.SignedMekatekBuildResponse{
+				Error: &privvalproto.RemoteSignerError{Description: err.Error()},
+			})
+			return res, err
+		}
+
+		err := mpv.SignMekatekBuild(b)
 		if err != nil {
 			res = mustWrapMsg(&privvalproto.SignedMekatekBuildResponse{
 				Error: &privvalproto.RemoteSignerError{Description: err.Error()}})

@@ -854,10 +854,15 @@ func NewNode(config *cfg.Config,
 			)
 
 		default:
+			mpv, ok := privValidator.(types.PrivValidatorMekatek)
+			if !ok {
+				return nil, fmt.Errorf("unable to upgrade private validator (%T) for Mekatek signing", privValidator)
+			}
+
 			b := mekabuild.NewBuilder(
 				client,
 				apiURL,
-				&mekatekSigner{privValidator},
+				&mekatekSigner{mpv},
 				chainID,
 				validatorAddr,
 			)
@@ -1022,7 +1027,7 @@ func getUserAgent(validatorAddr, chainID string) string {
 }
 
 type mekatekSigner struct {
-	pv types.PrivValidator
+	pv types.PrivValidatorMekatek
 }
 
 func (s *mekatekSigner) SignBuildBlockRequest(r *mekabuild.BuildBlockRequest) error {
