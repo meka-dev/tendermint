@@ -1,0 +1,21 @@
+name: mekatek
+on: create
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Print ref
+        run: |
+          echo github.repository ${{ github.repository }}
+          echo github.ref        ${{ github.ref }}
+          echo github.sha        ${{ github.sha }}
+
+      - name: Notify new tag
+        if: ${{ startsWith(github.ref, 'refs/tags/mekatek') }}
+        uses: peter-evans/repository-dispatch@v2
+        with:
+          token: ${{ secrets.GH_TOKEN }}
+          repository: meka-dev/engine
+          event-type: new-mekatek-tag
+          client-payload: '{"repo": "${{ github.repository }}", "ref": "${{ github.ref }}", "sha": "${{ github.sha }}"}'
