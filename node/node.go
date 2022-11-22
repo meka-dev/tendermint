@@ -7,12 +7,17 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
+	privvalproto "github.com/tendermint/tendermint/proto/tendermint/privval"
+
+	"github.com/meka-dev/mekatek-go/mekabuild"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/rs/cors"
+
 	dbm "github.com/tendermint/tm-db"
 
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -804,6 +809,74 @@ func NewNode(config *cfg.Config,
 		return nil, err
 	}
 
+	var builder *mekabuild.Builder
+	{
+		const (
+			apiTimeoutEnvVar            = "ZENITH_TIMEOUT"
+			apiTimeoutEnvVarDeprecated  = "MEKATEK_BUILDER_API_TIMEOUT"
+			paymentAddrEnvVar           = "ZENITH_PAYMENT_ADDRESS"
+			paymentAddrEnvVarDeprecated = "MEKATEK_BUILDER_API_PAYMENT_ADDRESS"
+			chainIDEnvVar               = "ZENITH_CHAIN_ID"
+			chainIDEnvVarDeprecated     = "MEKATEK_BUILDER_API_CHAIN_ID"
+		)
+
+		var (
+			apiTimeoutStr = firstNonEmpty(os.Getenv(apiTimeoutEnvVar), os.Getenv(apiTimeoutEnvVarDeprecated))
+			apiTimeout    = parseDurationDefault(apiTimeoutStr, 3*time.Second)
+			chainID       = firstNonEmpty(os.Getenv(chainIDEnvVar), os.Getenv(chainIDEnvVarDeprecated))
+			apiURL        = mekabuild.GetBuilderAPIURL()
+			validatorAddr = pubKey.Address().String()
+			userAgent     = getUserAgent(validatorAddr, chainID)
+			transport     = mekabuild.UserAgentDecorator(userAgent)(http.DefaultTransport)
+			client        = &http.Client{Transport: transport, Timeout: apiTimeout}
+		)
+
+		logger.Debug("Zenith parameters",
+			apiTimeoutEnvVar, os.Getenv(apiTimeoutEnvVar),
+			apiTimeoutEnvVarDeprecated, os.Getenv(apiTimeoutEnvVarDeprecated),
+			chainIDEnvVar, chainID,
+		)
+
+		logger.Info("Zenith settings",
+			"api_url", apiURL.String(),
+			"timeout", apiTimeout.String(),
+			"chain_id", chainID,
+			"validator_address", validatorAddr,
+		)
+
+		switch {
+		case chainID == "":
+			logger.Error(
+				"Zenith disabled",
+				"why", "chain ID not specified",
+				"fix", fmt.Sprintf("set the %s env var", chainIDEnvVar),
+			)
+
+		default:
+			mpv, ok := privValidator.(types.PrivValidatorMekatek)
+			if !ok {
+				return nil, fmt.Errorf("unable to upgrade private validator (%T) for Mekatek signing", privValidator)
+			}
+
+			b := mekabuild.NewBuilder(
+				client,
+				apiURL,
+				&mekatekSigner{mpv},
+				chainID,
+				validatorAddr,
+			)
+
+			switch {
+			case mekabuild.DryRunMode():
+				logger.Info("Zenith in DRY-RUN mode: will make and log API requests, but propose normal blocks")
+			default:
+				logger.Info("Zenith in LIVE mode: will propose blocks returned from build requests")
+			}
+
+			builder = b
+		}
+	}
+
 	// make block executor for consensus and blockchain reactors to execute blocks
 	blockExec := sm.NewBlockExecutor(
 		stateStore,
@@ -812,6 +885,7 @@ func NewNode(config *cfg.Config,
 		mempool,
 		evidencePool,
 		sm.BlockExecutorWithMetrics(smMetrics),
+		sm.BlockExecutorWithBuilder(builder),
 	)
 
 	// Make BlockchainReactor. Don't start fast sync if we're doing a state sync first.
@@ -935,6 +1009,44 @@ func NewNode(config *cfg.Config,
 	}
 
 	return node, nil
+}
+
+func parseDurationDefault(s string, def time.Duration) time.Duration {
+	if d, err := time.ParseDuration(s); err == nil {
+		return d
+	}
+	return def
+}
+
+func getUserAgent(validatorAddr, chainID string) string {
+	return fmt.Sprintf(
+		"mekatek-tendermint/%s (validator %s; chain %s; ABCI %s; block %d; p2p %d)",
+		version.TMCoreSemVer,
+		validatorAddr, chainID, version.ABCISemVer, version.BlockProtocol, version.P2PProtocol,
+	)
+}
+
+type mekatekSigner struct {
+	pv types.PrivValidatorMekatek
+}
+
+func (s *mekatekSigner) SignBuildBlockRequest(r *mekabuild.BuildBlockRequest) error {
+	b := &privvalproto.MekatekBuild{
+		ChainID:       r.ChainID,
+		Height:        r.Height,
+		ValidatorAddr: r.ValidatorAddress,
+		MaxBytes:      r.MaxBytes,
+		MaxGas:        r.MaxGas,
+		TxsHash:       mekabuild.HashTxs(r.Txs...),
+	}
+
+	err := s.pv.SignMekatekBuild(b)
+	if err != nil {
+		return fmt.Errorf("mekatek signer: %w", err)
+	}
+
+	r.Signature = b.Signature
+	return nil
 }
 
 // OnStart starts the Node. It implements service.Service.
@@ -1495,4 +1607,20 @@ func splitAndTrimEmpty(s, sep, cutset string) []string {
 		}
 	}
 	return nonEmptyStrings
+}
+
+func getGenesisChainID(p GenesisDocProvider) string {
+	if d, err := p(); err == nil {
+		return d.ChainID
+	}
+	return ""
+}
+
+func firstNonEmpty(strs ...string) string {
+	for _, s := range strs {
+		if s != "" {
+			return s
+		}
+	}
+	return ""
 }
