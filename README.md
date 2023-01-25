@@ -1,6 +1,6 @@
 # meka-dev/tendermint
 
-This fork of [tendermint/tendermint](https://github.com/tendermint/tendermint)
+This fork of [informalsystems/tendermint](https://github.com/informalsystems/tendermint)
 includes patches to support the [Mekatek Zenith API](https://api.mekatek.xyz).
 
 | Network            | Version                         | Release                                       |
