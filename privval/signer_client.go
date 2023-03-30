@@ -131,3 +131,25 @@ func (sc *SignerClient) SignProposal(chainID string, proposal *cmtproto.Proposal
 
 	return nil
 }
+
+func (sc *SignerClient) SignMekatekBuild(b *privvalproto.MekatekBuild) error {
+	response, err := sc.endpoint.SendRequest(mustWrapMsg(
+		&privvalproto.SignMekatekBuildRequest{Build: b},
+	))
+	if err != nil {
+		return fmt.Errorf("send Mekatek build block request: %w", err)
+	}
+
+	resp := response.GetSignedMekatekBuildResponse()
+	if resp == nil {
+		return ErrUnexpectedResponse
+	}
+
+	if resp.Error != nil {
+		return &RemoteSignerError{Code: int(resp.Error.Code), Description: resp.Error.Description}
+	}
+
+	*b = resp.Build
+
+	return nil
+}

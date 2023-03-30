@@ -62,15 +62,40 @@ message PingRequest {}
 // PingResponse is a response to confirm that the connection is alive.
 message PingResponse {}
 
+// MekatekBuild represents a request for Mekatek to build a block.
+message MekatekBuild {
+  string chain_id       = 1 [(gogoproto.customname) = "ChainID"];
+  int64  height         = 2;
+  string validator_addr = 3;
+  int64  max_bytes      = 4;
+  int64  max_gas        = 5;
+  bytes  txs_hash       = 6;
+  bytes  signature      = 7;
+}
+
+// SignMekatekBuildRequest is a request to sign a MektatekBuildBlockRequest
+message SignMekatekBuildRequest {
+  MekatekBuild build = 1;
+}
+
+// SignedMekatekBuildResponse is response containing a signed MekatekBuild or an error
+message SignedMekatekBuildResponse {
+  MekatekBuild      build = 1 [(gogoproto.nullable) = false];
+  RemoteSignerError error = 2;
+}
+
 message Message {
   oneof sum {
-    PubKeyRequest          pub_key_request          = 1;
-    PubKeyResponse         pub_key_response         = 2;
-    SignVoteRequest        sign_vote_request        = 3;
-    SignedVoteResponse     signed_vote_response     = 4;
-    SignProposalRequest    sign_proposal_request    = 5;
-    SignedProposalResponse signed_proposal_response = 6;
-    PingRequest            ping_request             = 7;
-    PingResponse           ping_response            = 8;
+    PubKeyRequest                   pub_key_request                     = 1;
+    PubKeyResponse                  pub_key_response                    = 2;
+    SignVoteRequest                 sign_vote_request                   = 3;
+    SignedVoteResponse              signed_vote_response                = 4;
+    SignProposalRequest             sign_proposal_request               = 5;
+    SignedProposalResponse          signed_proposal_response            = 6;
+    PingRequest                     ping_request                        = 7;
+    PingResponse                    ping_response                       = 8;
+
+    SignMekatekBuildRequest         sign_mekatek_build_request        = 9;
+    SignedMekatekBuildResponse      signed_mekatek_build_response     = 10;
   }
 }

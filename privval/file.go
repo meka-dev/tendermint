@@ -7,7 +7,10 @@ import (
 	"os"
 	"time"
 
+	privvalproto "github.com/tendermint/tendermint/proto/tendermint/privval"
+
 	"github.com/gogo/protobuf/proto"
+	"github.com/meka-dev/mekatek-go/mekabuild"
 
 	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/crypto/ed25519"
@@ -263,6 +266,24 @@ func (pv *FilePV) SignProposal(chainID string, proposal *cmtproto.Proposal) erro
 	if err := pv.signProposal(chainID, proposal); err != nil {
 		return fmt.Errorf("error signing proposal: %v", err)
 	}
+	return nil
+}
+
+func (pv *FilePV) SignMekatekBuild(b *privvalproto.MekatekBuild) error {
+	signature, err := pv.Key.PrivKey.Sign(mekabuild.BuildBlockRequestSignBytes(
+		b.ChainID,
+		b.Height,
+		b.ValidatorAddr,
+		b.MaxBytes,
+		b.MaxGas,
+		b.TxsHash,
+	))
+	if err != nil {
+		return fmt.Errorf("sign Mekatek build: %w", err)
+	}
+
+	b.Signature = signature
+
 	return nil
 }
 

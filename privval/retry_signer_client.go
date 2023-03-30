@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	privvalproto "github.com/tendermint/tendermint/proto/tendermint/privval"
+
 	"github.com/tendermint/tendermint/crypto"
 	cmtproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	"github.com/tendermint/tendermint/types"
@@ -93,4 +95,19 @@ func (sc *RetrySignerClient) SignProposal(chainID string, proposal *cmtproto.Pro
 		time.Sleep(sc.timeout)
 	}
 	return fmt.Errorf("exhausted all attempts to sign proposal: %w", err)
+}
+
+func (sc *RetrySignerClient) SignMekatekBuild(b *privvalproto.MekatekBuild) (err error) {
+	for i := 0; i < sc.retries || sc.retries == 0; i++ {
+		err = sc.next.SignMekatekBuild(b)
+		if err == nil {
+			return nil
+		}
+		// If remote signer errors, we don't retry.
+		if _, ok := err.(*RemoteSignerError); ok {
+			return err
+		}
+		time.Sleep(sc.timeout)
+	}
+	return fmt.Errorf("exhausted all attempts to sign build block request: %w", err)
 }

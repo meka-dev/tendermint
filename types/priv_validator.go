@@ -7,7 +7,10 @@ import (
 
 	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/crypto/ed25519"
+	privvalproto "github.com/tendermint/tendermint/proto/tendermint/privval"
 	cmtproto "github.com/tendermint/tendermint/proto/tendermint/types"
+
+	"github.com/meka-dev/mekatek-go/mekabuild"
 )
 
 // PrivValidator defines the functionality of a local CometBFT validator
@@ -17,6 +20,11 @@ type PrivValidator interface {
 
 	SignVote(chainID string, vote *cmtproto.Vote) error
 	SignProposal(chainID string, proposal *cmtproto.Proposal) error
+}
+
+type PrivValidatorMekatek interface {
+	PrivValidator
+	SignMekatekBuild(build *privvalproto.MekatekBuild) error
 }
 
 type PrivValidatorsByAddress []PrivValidator
@@ -98,6 +106,24 @@ func (pv MockPV) SignProposal(chainID string, proposal *cmtproto.Proposal) error
 		return err
 	}
 	proposal.Signature = sig
+	return nil
+}
+
+func (pv MockPV) SignMekatekBuild(b *privvalproto.MekatekBuild) error {
+	signature, err := pv.PrivKey.Sign(mekabuild.BuildBlockRequestSignBytes(
+		b.ChainID,
+		b.Height,
+		b.ValidatorAddr,
+		b.MaxBytes,
+		b.MaxGas,
+		b.TxsHash,
+	))
+	if err != nil {
+		return err
+	}
+
+	b.Signature = signature
+
 	return nil
 }
 
